@@ -17,7 +17,7 @@ export default function Header() {
             <Button variant="blue" className="flex-grow h-full">Trang chủ</Button>
           </Link>
           <Link href="/quan-ly-tai-khoan">
-            <Button variant="blue" className="flex-grow h-full">Quản lý tài khoản</Button>
+            <Button variant="blue" className=" h-full">Quản lý tài khoản</Button>
           </Link>
           <Link href="/in-tai-lieu">
             <Button variant="blue" className="flex-grow h-full">In tài liệu</Button>
