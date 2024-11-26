@@ -1,21 +1,23 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // Interface để định nghĩa kiểu dữ liệu
 interface PrintHistory {
-  printDate: string; // Ngày và giờ in
-  documentName: string; // Tên tài liệu
-  documentFormat: "PDF" | "docx"; // Định dạng tài liệu
-  documentSize: number; // Kích thước tài liệu (MB)
-  printCount: number; // Số lượng bản in
-  paperSize: "A4" | "A3"; // Khổ giấy
-  colorMode: string; // Màu sắc
-  printType: string; // Kiểu in
-  printerCode: string; // Mã máy in
-  location: string; // Địa điểm
-  cost: string; // Chi phí
-  status: string; // Trạng thái
-  printError: string; // Lỗi khi in
-  notes: string; // Ghi chú thêm
+  printDate: string; 
+  documentName: string; 
+  documentFormat: "PDF" | "docx"; 
+  documentSize: number; 
+  printCount: number; 
+  paperSize: "A4" | "A3"; 
+  colorMode: string; 
+  printType: string; 
+  printerCode: string; 
+  location: string; 
+  cost: string; 
+  status: string; 
+  printError: string; 
+  notes: string;
 }
 
 const mockData: PrintHistory[] = [
@@ -51,14 +53,263 @@ const mockData: PrintHistory[] = [
     printError: "Kẹt giấy",
     notes: "Đã khắc phục",
   },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
+  {
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },{
+    printDate: "2024-10-02 14:45",
+    documentName: "Luận văn tốt nghiệp",
+    documentFormat: "docx",
+    documentSize: 5,
+    printCount: 12,
+    paperSize: "A3",
+    colorMode: "In đen trắng",
+    printType: "Hai mặt",
+    printerCode: "M456",
+    location: "Tầng 2, H6",
+    cost: "30,000 VND",
+    status: "Lỗi",
+    printError: "Kẹt giấy",
+    notes: "Đã khắc phục",
+  },
 ];
 
 const PrintHistoryPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPrinter, setSelectedPrinter] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [visibleCount, setVisibleCount] = useState(10); 
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
-  // Lọc dữ liệu dựa trên các tiêu chí tìm kiếm
   const filteredData = mockData.filter((item) => {
     const matchesSearchTerm = item.documentName
       .toLowerCase()
@@ -68,14 +319,33 @@ const PrintHistoryPage = () => {
     const matchesLocation =
       !selectedLocation || item.location === selectedLocation;
 
-    return matchesSearchTerm && matchesPrinter && matchesLocation;
+    // Kiểm tra ngày nếu có
+    const printDate = new Date(item.printDate);
+    const matchesStartDate = !startDate || printDate >= startDate;
+    const matchesEndDate = !endDate || printDate <= endDate;
+
+    return (
+      matchesSearchTerm &&
+      matchesPrinter &&
+      matchesLocation &&
+      matchesStartDate &&
+      matchesEndDate
+    );
   });
+
+  // Hàm để load tài liệu
+  const loadMore = () => {
+    setVisibleCount((prev) => prev + 10);
+  };
+
+  //hiển thị giới hạn 10
+  const displayedData = filteredData.slice(0, visibleCount);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="mx-auto max-w-4xl bg-white p-8 shadow-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-4">Lịch Sử In</h1>
-        {/* Form tìm kiếm */}
+        
         <div className="mb-6">
           <div className="flex flex-wrap gap-4">
             <input
@@ -104,14 +374,41 @@ const PrintHistoryPage = () => {
               <option value="Tầng 2, H6">Tầng 2, H6</option>
             </select>
           </div>
+
+          <div className="mt-4 flex gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Từ ngày:
+              </label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                dateFormat="dd/MM/yyyy"
+                className="mt-1 rounded border px-4 py-2 shadow-sm"
+                placeholderText="Chọn ngày bắt đầu"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Đến ngày:
+              </label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                dateFormat="dd/MM/yyyy"
+                className="mt-1 rounded border px-4 py-2 shadow-sm"
+                placeholderText="Chọn ngày kết thúc"
+              />
+            </div>
+          </div>
+
           <button className="mt-4 rounded bg-yellow-500 px-4 py-2 text-white shadow-sm hover:bg-yellow-600">
             Tìm kiếm
           </button>
         </div>
 
-        {/* Danh sách lịch sử in */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredData.map((item, index) => (
+          {displayedData.map((item, index) => (
             <div
               key={index}
               className="rounded border bg-gray-100 p-4 shadow-sm"
@@ -166,6 +463,30 @@ const PrintHistoryPage = () => {
             </div>
           ))}
         </div>
+
+        {filteredData.length > displayedData.length && (
+          <div className="text-center mt-6">
+            <button
+              onClick={loadMore}
+              className="rounded-full bg-yellow-500 p-3 text-white hover:bg-yellow-600"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                className="w-6 h-6 mx-auto"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
