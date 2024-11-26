@@ -15,6 +15,10 @@ const NotFound = lazy(() => import('@/pages/not-found'));
 const Account = lazy(() => import('@/pages/student/Account') );
 const Setting = lazy(() => import('@/pages/student/Setting') );
 const Pass = lazy(() => import('@/pages/student/Pass') );
+const Help = lazy(() => import('@/pages/student/Help'));
+const History_print = lazy(() => import('@/pages/student/History_Print'));
+
+
 const RootLayout = lazy(() => import('@/layouts/root-layout'));
 const LoggedInLayout = lazy(() => import('@/layouts/logged-in-layout'));
 const StudentLayout = lazy(() => import('@/layouts/student-layout'));
@@ -83,7 +87,7 @@ const router = createBrowserRouter(
 				},
 
 				
-
+				//quan ly tai khoan
 				{
 					path: 'quan-ly-tai-khoan',
 					element: (
@@ -127,8 +131,42 @@ const router = createBrowserRouter(
 						},
 					],
 				},
+				
+
+				{
+					path: 'help',
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							<Help />
+						</Suspense>
+					),
+				},
+
+			
+			
 			],
 		},
+
+
+		{
+			path: '/lich-su-in',
+			element: (
+				<Suspense fallback={<LoadingSpinner />}>
+					  <StudentLayout />  
+				</Suspense>
+			),
+			children: [
+				{
+					index: true,
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							 <History_print /> 
+						</Suspense>
+					),
+				},
+			],
+		},
+
 
 
 		{

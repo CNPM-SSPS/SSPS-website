@@ -32,14 +32,14 @@ const SettingPage = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	useEffect(() => {
-		const storedUserInfo = localStorage.getItem('userInfo');
+		const storedUserInfo = localStorage.getItem('userInfo') || sessionStorage.getItem('userInfo');
 		if (storedUserInfo) {
 			const parsedInfo = JSON.parse(storedUserInfo) as UserInfo;
 			setUserInfo(parsedInfo);
 			setFormData(parsedInfo);
 		} else {
 			localStorage.setItem('userInfo', JSON.stringify(MOCKED_USER));
-		}
+			sessionStorage.setItem('userInfo', JSON.stringify(MOCKED_USER));		}
 	}, []);
 
 	const handleEdit = () => {
@@ -50,7 +50,8 @@ const SettingPage = () => {
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 		setUserInfo(formData);
-		localStorage.setItem('userInfo', JSON.stringify(formData));
+		localStorage.setItem('userInfo', JSON.stringify(formData)); 
+		sessionStorage.setItem('userInfo', JSON.stringify(formData));
 		toast.success('Thông tin người dùng đã được cập nhật');
 		setIsModalOpen(false);
 	};
