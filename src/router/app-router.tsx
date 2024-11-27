@@ -2,6 +2,7 @@ import CommonError from '@/pages/logged-in/common-error';
 import PrintHistory from '@/pages/logged-in/history';
 import Info from '@/pages/logged-in/info';
 import Printer from '@/pages/logged-in/printer';
+import PaymentPage from '@/pages/student/payment';
 import { lazy, Suspense } from 'react';
 import {
 	createBrowserRouter,
@@ -166,7 +167,24 @@ const router = createBrowserRouter(
 				},
 			],
 		},
-
+        {
+			path: '/thanh-toan',
+			element: (
+				<Suspense fallback={<LoadingSpinner />}>
+					  <StudentLayout />  
+				</Suspense>
+			),
+			children: [
+				{
+					index: true,
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							 <PaymentPage/> 
+						</Suspense>
+					),
+				},
+			],
+		},
 
 
 		{
@@ -199,6 +217,7 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
+				
 				{
 					path: 'lich-su-in',
 					element: (
