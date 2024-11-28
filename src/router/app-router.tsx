@@ -10,6 +10,7 @@ import {
 	RouterProvider,
 } from 'react-router-dom';
 import UsageReport from '../pages/logged-in/report';
+import PrintPage from '../pages/student/components/print';
 const Login = lazy(() => import('@/pages/global/login'));
 const Lorem = lazy(() => import('@/pages/global/lorem'));
 const NotFound = lazy(() => import('@/pages/not-found'));
@@ -147,7 +148,24 @@ const router = createBrowserRouter(
 			
 			],
 		},
-
+        { //đang fix
+			path: '/in-tai-lieu',
+			element: (
+				<Suspense fallback={<LoadingSpinner />}>
+					  <StudentLayout />  
+				</Suspense>
+			),
+			children: [
+				{
+					index: true,
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							 <PrintPage /> 
+						</Suspense>
+					),
+				},
+			],
+		},
 
 		{
 			path: '/lich-su-in',
