@@ -7,6 +7,7 @@ import {
 	IconDefinition,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import axios from 'axios';
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
@@ -79,16 +80,16 @@ const navigationItems: NavigationItem[] = [
 	},
 ];
 
-const Header = ({ isStudent }: { isStudent: boolean }) => {
+const Header: React.FC<{ isStudent: boolean }> = ({ isStudent }) => {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const [shouldLoadDrawer, setShouldLoadDrawer] = useState(false);
-	const [showDropdown, setShowDropdown] = useState(false);
+	const [showDropdown, setShowDropdown] = useState<string | null>(null);
 
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			const target = event.target as HTMLElement;
-			if (!target.closest('.profile-dropdown')) {
-				setShowDropdown(false);
+			if (!target.closest('.nav-dropdown')) {
+				setShowDropdown(null);
 			}
 		};
 
@@ -100,6 +101,29 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 		setShouldLoadDrawer(true);
 		setIsDrawerOpen(true);
 	};
+
+	const handleLogout = async () => {
+		try {
+			const refreshToken = localStorage.getItem('refreshToken');
+			if (refreshToken) {
+				await axios.post(
+					'/api/auth/logout',
+					{ refreshToken },
+					{
+						headers: {
+							'Content-Type': 'application/json',
+						},
+					},
+				);
+			}
+		} catch (error) {
+			console.error('Logout failed:', error);
+		} finally {
+			localStorage.clear();
+			window.location.href = '/dang-nhap';
+		}
+	};
+
 	return (
 		<header className='sticky top-0 z-50 bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg'>
 			<div className='mx-auto max-w-7xl px-4 sm:px-0'>
@@ -128,7 +152,7 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 									.map((item) => (
 										<li
 											key={item.path}
-											className='group relative'
+											className='nav-dropdown group relative'
 										>
 											<NavLink
 												to={item.path}
@@ -139,6 +163,17 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 															: 'text-blue-50 hover:bg-blue-500/10 hover:text-white'
 													} focus:outline-none focus:ring-2 focus:ring-white/50`
 												}
+												onClick={(e) => {
+													if (item.subItems) {
+														e.preventDefault();
+														setShowDropdown(
+															showDropdown ===
+																item.path
+																? null
+																: item.path,
+														);
+													}
+												}}
 											>
 												<FontAwesomeIcon
 													icon={item.icon}
@@ -157,7 +192,14 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 											</NavLink>
 
 											{item.subItems && (
-												<div className='absolute left-0 mt-1 hidden w-56 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 group-hover:block'>
+												<div
+													className={`absolute left-0 mt-1 w-56 rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
+														showDropdown ===
+														item.path
+															? 'block'
+															: 'hidden'
+													}`}
+												>
 													{item.subItems.map(
 														(subItem) => (
 															<NavLink
@@ -175,6 +217,11 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 																			? 'bg-gray-100 text-blue-600'
 																			: 'text-gray-700 hover:bg-gray-50'
 																	}`
+																}
+																onClick={() =>
+																	setShowDropdown(
+																		null,
+																	)
 																}
 															>
 																{subItem.label}
@@ -203,7 +250,11 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 							<div className='profile-dropdown relative'>
 								<button
 									onClick={() =>
-										setShowDropdown(!showDropdown)
+										setShowDropdown((prev) =>
+											prev === 'profile'
+												? null
+												: 'profile',
+										)
 									}
 									className='group relative flex items-center gap-2 rounded-full text-sm font-medium text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/50'
 								>
@@ -215,7 +266,7 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 
 								<div
 									className={`absolute right-0 mt-2 w-36 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 transition-all duration-200 ${
-										showDropdown
+										showDropdown === 'profile'
 											? 'scale-100 opacity-100'
 											: 'pointer-events-none scale-95 opacity-0'
 									}`}
@@ -224,10 +275,8 @@ const Header = ({ isStudent }: { isStudent: boolean }) => {
 										<button
 											className='flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100'
 											onClick={() => {
-												setShowDropdown(false);
-												localStorage.clear();
-												window.location.href =
-													'/dang-nhap';
+												setShowDropdown(null);
+												handleLogout();
 											}}
 										>
 											<FontAwesomeIcon

@@ -1,6 +1,6 @@
 import LogoWebsite from '@/assets/images/logo.jpg';
 import PaymentModal from '@/pages/student/components/payment-modal';
-import { StudentInfo } from '@/pages/student/Account';
+import { StudentInfo } from '@/pages/student/home';
 import {
 	faFileInvoice,
 	faHistory,

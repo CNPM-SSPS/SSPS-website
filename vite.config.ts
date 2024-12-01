@@ -18,6 +18,21 @@ const BUILD_FILES: BuildFileContent[] = [
 		path: '.htaccess',
 		content: `<IfModule mod_rewrite.c>\n\tRewriteEngine On\n\tRewriteBase /\n\tRewriteCond %{REQUEST_FILENAME} !-f\n\tRewriteCond %{REQUEST_FILENAME} !-d\n\tRewriteRule ^ index.html [L]\n</IfModule>`,
 	},
+	{
+		path: 'vercel.json',
+		content: JSON.stringify(
+			{
+				rewrites: [
+					{
+						source: '/(.*)',
+						destination: '/index.html',
+					},
+				],
+			},
+			null,
+			2,
+		),
+	},
 ];
 
 const generateRandomName = (): string =>
@@ -65,7 +80,11 @@ export default defineConfig({
 	server: {
 		host: '0.0.0.0',
 		proxy: {
-			'/api': 'http://localhost:3000',
+			'/v1': {
+				target: 'http://localhost:8080',
+				changeOrigin: true,
+				secure: false,
+			},
 		},
 	},
 

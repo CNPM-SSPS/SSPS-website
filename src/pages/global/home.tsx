@@ -1,4 +1,4 @@
-import HCMUTImage from '@/assets/images/anhdhbk.jpg';
+import HCMUTImage from '@/assets/images/hcmut.png';
 import {
 	faExclamationTriangle,
 	faFileAlt,
