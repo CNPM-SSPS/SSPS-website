@@ -4,51 +4,59 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 interface Printer {
 	id: string;
-	brand: string;
-	model: string;
-	paperQuantity: number;
-	dateAdded: string;
-	type: 'laser' | 'inkjet' | 'thermal' | 'multifunction';
-	note: string;
+	room: string;
 	building: string;
-	floor: string;
-	status: 'active' | 'maintenance' | 'inactive';
+	campus: string;
+	description: string;
+	model: string;
+	brand: string;
+	enable: boolean;
+	delete: boolean;
+	dateAdded: string;
+	lastmodified: string;
 }
 
-const MOCK_PRINTERS: Printer[] = [
-	{
-		id: '1',
-		brand: 'HP',
-		model: 'Xịn nhất',
-		paperQuantity: 500,
-		dateAdded: '2024-11-18',
-		type: 'laser',
-		note: '',
-		building: 'H1',
-		floor: '201',
-		status: 'active',
-	},
-	{
-		id: '2',
-		brand: 'Đéll',
-		model: 'Cùi bắp',
-		paperQuantity: 200,
-		dateAdded: '2024-11-18',
-		type: 'inkjet',
-		note: '',
-		building: 'H2',
-		floor: '301',
-		status: 'maintenance',
-	},
-];
+// const MOCK_PRINTERS: Printer[] = [
+// 	{
+// 		id: '1',
+// 		brand: 'HP',
+// 		model: 'Xịn nhất',
+// 		dateAdded: '2024-11-18',
+// 		description: 'Máy Ricoh Laser tại phòng 706, tòa nhà A1, khu CS1',
+// 		building: 'H1',
+// 		room: '201',
+// 		enable: true,
+// 		delete: false,
+// 		campus: 'CS2',
+// 		lastmodified: '2024-11-18',
+// 	},
+// 	{
+// 		id: '2',
+// 		brand: 'Đéll',
+// 		model: 'Cùi bắp',
+// 		dateAdded: '2024-11-18',
+// 		description: '',
+// 		building: 'H2',
+// 		room: '301',
+// 		enable: true,
+// 		delete: false,
+// 		campus: 'CS2',
+// 		lastmodified: '2024-11-18',
+// 	},
+// ];
+
+
+//kiểm tra lại filterType nếu có thể xem lại
+
+
 type FilterType = {
 	brand: 'asc' | 'desc' | null;
 	position: 'asc' | 'desc' | null;
-	paperCount: 'asc' | 'desc' | null;
-	status: 'active' | 'maintenance' | null;
+	enable: boolean | null;
 };
 
 const PrinterPage = () => {
@@ -59,33 +67,37 @@ const PrinterPage = () => {
 	const [formData, setFormData] = useState<Omit<Printer, 'id'>>({
 		brand: '',
 		model: '',
-		paperQuantity: 0,
 		dateAdded: new Date().toISOString().split('T')[0],
-		type: 'laser',
-		note: '',
+		description: '',
 		building: '',
-		floor: '',
-		status: 'active',
+		room: '',
+		enable: true,
+		delete: false,
+		campus: '',
+		lastmodified: new Date().toISOString().split('T')[0],
 	});
 	const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 	const [printerToDelete, setPrinterToDelete] = useState<string | null>(null);
 	const [filters, setFilters] = useState<FilterType>({
 		brand: null,
 		position: null,
-		paperCount: null,
-		status: null,
+		enable: null,
 	});
 
 	const ITEMS_PER_PAGE = 10;
 
-	useEffect(() => {
-		const storedPrinters = localStorage.getItem('printers');
-		if (storedPrinters) {
-			setPrinters(JSON.parse(storedPrinters));
-		} else {
-			setPrinters(MOCK_PRINTERS);
-			localStorage.setItem('printers', JSON.stringify(MOCK_PRINTERS));
+	const fetchPrinters = async () => {
+		try {
+			const response = await axios.get('/v1/officer/printer');
+			setPrinters(response.data);
+		} catch (error) {
+			toast.error('Không thể tải danh sách máy in');
+			console.error(error);
 		}
+	};
+
+	useEffect(() => {
+		fetchPrinters();
 	}, []);
 
 	const applyFilters = (printers: Printer[]) => {
@@ -103,25 +115,17 @@ const PrinterPage = () => {
 
 		if (filters.position) {
 			filteredPrinters.sort((a, b) => {
-				const locationA = `${a.building}-${a.floor}`;
-				const locationB = `${b.building}-${b.floor}`;
+				const locationA = `${a.building}-${a.room}`;
+				const locationB = `${b.building}-${b.room}`;
 				return filters.position === 'asc'
 					? locationA.localeCompare(locationB)
 					: locationB.localeCompare(locationA);
 			});
 		}
 
-		if (filters.paperCount) {
-			filteredPrinters.sort((a, b) =>
-				filters.paperCount === 'asc'
-					? a.paperQuantity - b.paperQuantity
-					: b.paperQuantity - a.paperQuantity,
-			);
-		}
-
-		if (filters.status) {
+		if (filters.enable !== null) {
 			filteredPrinters = filteredPrinters.filter(
-				(printer) => printer.status === filters.status,
+				(printer) => printer.enable === filters.enable,
 			);
 		}
 
@@ -136,28 +140,28 @@ const PrinterPage = () => {
 
 	const totalPages = Math.ceil(printers.length / ITEMS_PER_PAGE);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const newPrinters = [...printers];
 
-		if (editingPrinter) {
-			const index = newPrinters.findIndex(
-				(p) => p.id === editingPrinter.id,
-			);
-			newPrinters[index] = { ...formData, id: editingPrinter.id };
-			toast.success('Máy in đã được cập nhật');
-		} else {
-			newPrinters.push({
-				...formData,
-				id: crypto.randomUUID(),
-			});
-			toast.success('Máy in đã được thêm');
+		try {
+			if (editingPrinter) {
+				await axios.put(
+					`/v1/officer/printer/${editingPrinter.id}`,
+					formData,
+				);
+				toast.success('Máy in đã được cập nhật');
+			} else {
+				const response = await axios.post('/v1/officer/printer', formData);
+				toast.success('Máy in đã được thêm');
+				setPrinters([...printers, response.data]);
+			}
+			setIsModalOpen(false);
+			resetForm();
+			fetchPrinters();
+		} catch (error) {
+			toast.error('Đã xảy ra lỗi khi cập nhật máy in');
+			console.error(error);
 		}
-
-		localStorage.setItem('printers', JSON.stringify(newPrinters));
-		setPrinters(newPrinters);
-		setIsModalOpen(false);
-		resetForm();
 	};
 
 	const handleDeleteClick = (id: string) => {
@@ -165,19 +169,22 @@ const PrinterPage = () => {
 		setIsConfirmModalOpen(true);
 	};
 
-	const handleConfirmDelete = () => {
+	const handleConfirmDelete = async () => {
 		if (printerToDelete) {
-			const newPrinters = printers.filter(
-				(p) => p.id !== printerToDelete,
-			);
-			localStorage.setItem('printers', JSON.stringify(newPrinters));
-			setPrinters(newPrinters);
-			toast.success('Máy in đã được xóa');
+			try {
+				await axios.delete(`/v1/officer/printer/${printerToDelete}`);
+				toast.success('Máy in đã được xóa');
+				fetchPrinters();
+			} catch (error) {
+				toast.error('Đã xảy ra lỗi khi xóa máy in');
+				console.error(error);
+			}
 		}
 		setIsConfirmModalOpen(false);
 		setPrinterToDelete(null);
 	};
 
+	
 	const handleEdit = (printer: Printer) => {
 		setEditingPrinter(printer);
 		setFormData(printer);
@@ -188,13 +195,14 @@ const PrinterPage = () => {
 		setFormData({
 			brand: '',
 			model: '',
-			paperQuantity: 0,
 			dateAdded: new Date().toISOString().split('T')[0],
-			type: 'laser',
-			note: '',
+			description: '',
 			building: '',
-			floor: '',
-			status: 'active',
+			room: '',
+			enable: true,
+			delete: false,
+			campus: '',
+			lastmodified: new Date().toISOString().split('T')[0],
 		});
 		setEditingPrinter(null);
 	};
@@ -284,42 +292,13 @@ const PrinterPage = () => {
 										</th>
 										<th className='p-4'>
 											<div className='flex items-center gap-2'>
-												Số Lượng Giấy
-												<select
-													value={
-														filters.paperCount ?? ''
-													}
-													onChange={(e) =>
-														setFilters((prev) => ({
-															...prev,
-															paperCount: e.target
-																.value as FilterType['paperCount'],
-														}))
-													}
-													className='ml-2 rounded-md border border-gray-300 px-2 py-1 text-sm'
-												>
-													<option value=''>
-														Tất cả
-													</option>
-													<option value='asc'>
-														Tăng dần
-													</option>
-													<option value='desc'>
-														Giảm dần
-													</option>
-												</select>
-											</div>
-										</th>
-										<th className='p-4'>
-											<div className='flex items-center gap-2'>
 												Tình Trạng
 												<select
-													value={filters.status ?? ''}
+													value={filters.enable !== null ? filters.enable.toString() : ''}
 													onChange={(e) =>
 														setFilters((prev) => ({
 															...prev,
-															status: e.target
-																.value as FilterType['status'],
+															enable: e.target.value === '' ? null : e.target.value === 'true',
 														}))
 													}
 													className='ml-2 rounded-md border border-gray-300 px-2 py-1 text-sm'
@@ -327,11 +306,11 @@ const PrinterPage = () => {
 													<option value=''>
 														Tất cả
 													</option>
-													<option value='active'>
+													<option value='true'>
 														Hoạt động
 													</option>
-													<option value='maintenance'>
-														Bảo trì
+													<option value='false'>
+														Không hoạt động
 													</option>
 												</select>
 											</div>
@@ -359,29 +338,17 @@ const PrinterPage = () => {
 											</td>
 											<td className='p-4'>
 												{printer.building}-
-												{printer.floor}
-											</td>
-											<td className='p-4'>
-												{printer.paperQuantity} trang
+												{printer.room}
 											</td>
 											<td className='flex items-center justify-center p-4'>
 												<span
 													className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-														printer.status ===
-														'active'
+														printer.enable
 															? 'bg-green-100 text-green-800'
-															: printer.status ===
-																  'maintenance'
-																? 'bg-yellow-100 text-yellow-800'
-																: 'bg-red-100 text-red-800'
+															: 'bg-red-100 text-red-800'
 													}`}
 												>
-													{printer.status === 'active'
-														? 'Hoạt động'
-														: printer.status ===
-															  'maintenance'
-															? 'Đang bảo trì'
-															: 'Không hoạt động'}
+													{printer.enable ? 'Hoạt động' : 'Không hoạt động'}
 												</span>
 											</td>
 											<td className='p-4'>
@@ -493,7 +460,7 @@ const PrinterPage = () => {
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									/>
 								</div>
-								<div>
+								{/* <div>
 									<label className='block text-sm font-medium text-gray-700'>
 										Số Lượng Giấy
 									</label>
@@ -512,7 +479,7 @@ const PrinterPage = () => {
 										}
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									/>
-								</div>
+								</div> */}
 								<div>
 									<label className='block text-sm font-medium text-gray-700'>
 										Ngày Thêm
@@ -530,7 +497,7 @@ const PrinterPage = () => {
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									/>
 								</div>
-								<div>
+								{/* <div>
 									<label className='block text-sm font-medium text-gray-700'>
 										Loại Máy In
 									</label>
@@ -553,30 +520,24 @@ const PrinterPage = () => {
 											Đa chức năng
 										</option>
 									</select>
-								</div>
+								</div> */}
 								<div>
-									<label className='block text-sm font-medium text-gray-700'>
+									<label className="block text-sm font-medium text-gray-700">
 										Tình Trạng
 									</label>
 									<select
 										required
-										value={formData.status}
+										value={formData.enable.toString()}
 										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												status: e.target
-													.value as Printer['status'],
-											}))
+										setFormData((prev) => ({
+											...prev,
+											enable: e.target.value === "true",
+										}))
 										}
-										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
+										className="mt-1 block w-full rounded-md border border-gray-300 p-2"
 									>
-										<option value='active'>Active</option>
-										<option value='maintenance'>
-											Maintenance
-										</option>
-										<option value='inactive'>
-											Inactive
-										</option>
+										<option value="true">Hoạt động</option>
+										<option value="false">Không hoạt động</option>
 									</select>
 								</div>
 								<div>
@@ -608,7 +569,7 @@ const PrinterPage = () => {
 										type='text'
 										required
 										placeholder='201'
-										value={formData.floor}
+										value={formData.room}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
@@ -626,7 +587,7 @@ const PrinterPage = () => {
 									Ghi Chú
 								</label>
 								<textarea
-									value={formData.note}
+									value={formData.description}
 									onChange={(e) =>
 										setFormData((prev) => ({
 											...prev,
