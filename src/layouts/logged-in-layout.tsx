@@ -9,7 +9,7 @@ import { useNavbar } from '@/contexts/use-navbar';
 import { Helmet } from 'react-helmet-async';
 import { Outlet } from 'react-router-dom';
 
-const LoggedInLayoutContent = () => {
+const LoggedInLayoutContent: React.FC = () => {
 	const { isCollapsed } = useNavbar();
 	const isStudent = localStorage.getItem('userRole') === 'user';
 

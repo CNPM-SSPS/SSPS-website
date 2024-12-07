@@ -1,104 +1,91 @@
 import ConfirmModal from '@/components/confirm-modal';
 import { faEdit, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 
 interface Printer {
-	id: string;
+	_id: string;
 	room: string;
 	building: string;
 	campus: string;
 	description: string;
 	model: string;
 	brand: string;
-	enable: boolean;
-	delete: boolean;
+	enabled: boolean;
+	deleted: boolean;
 	dateAdded: string;
-	lastmodified: string;
+	lastModified: string;
 }
-
-// const MOCK_PRINTERS: Printer[] = [
-// 	{
-// 		id: '1',
-// 		brand: 'HP',
-// 		model: 'Xịn nhất',
-// 		dateAdded: '2024-11-18',
-// 		description: 'Máy Ricoh Laser tại phòng 706, tòa nhà A1, khu CS1',
-// 		building: 'H1',
-// 		room: '201',
-// 		enable: true,
-// 		delete: false,
-// 		campus: 'CS2',
-// 		lastmodified: '2024-11-18',
-// 	},
-// 	{
-// 		id: '2',
-// 		brand: 'Đéll',
-// 		model: 'Cùi bắp',
-// 		dateAdded: '2024-11-18',
-// 		description: '',
-// 		building: 'H2',
-// 		room: '301',
-// 		enable: true,
-// 		delete: false,
-// 		campus: 'CS2',
-// 		lastmodified: '2024-11-18',
-// 	},
-// ];
-
-
-//kiểm tra lại filterType nếu có thể xem lại
-
 
 type FilterType = {
 	brand: 'asc' | 'desc' | null;
 	position: 'asc' | 'desc' | null;
-	enable: boolean | null;
+	enabled: boolean | null;
 };
 
-const PrinterPage = () => {
+const formatDate = (dateString: string) => {
+	return new Date(dateString).toLocaleString('vi-VN', {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+		hour: '2-digit',
+		minute: '2-digit',
+	});
+};
+
+const PrinterPage: React.FC = () => {
+	const accessToken = localStorage.getItem('accessToken');
 	const [printers, setPrinters] = useState<Printer[]>([]);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [currentPage, setCurrentPage] = useState(1);
 	const [editingPrinter, setEditingPrinter] = useState<Printer | null>(null);
-	const [formData, setFormData] = useState<Omit<Printer, 'id'>>({
+	const [formData, setFormData] = useState<Omit<Printer, '_id'>>({
 		brand: '',
 		model: '',
-		dateAdded: new Date().toISOString().split('T')[0],
+		dateAdded: new Date().toISOString(),
 		description: '',
 		building: '',
 		room: '',
-		enable: true,
-		delete: false,
-		campus: '',
-		lastmodified: new Date().toISOString().split('T')[0],
+		enabled: true,
+		deleted: false,
+		campus: 'CS2',
+		lastModified: new Date().toISOString(),
 	});
 	const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 	const [printerToDelete, setPrinterToDelete] = useState<string | null>(null);
 	const [filters, setFilters] = useState<FilterType>({
 		brand: null,
 		position: null,
-		enable: null,
+		enabled: null,
 	});
 
 	const ITEMS_PER_PAGE = 10;
 
-	const fetchPrinters = async () => {
+	const fetchPrinters = useCallback(async () => {
 		try {
-			const response = await axios.get('/v1/officer/printer');
+			const response = await axios.get('/v1/officer/printer', {
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+				},
+			});
 			setPrinters(response.data);
 		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 401) {
+					localStorage.clear();
+				}
+			}
 			toast.error('Không thể tải danh sách máy in');
 			console.error(error);
 		}
-	};
+	}, [accessToken]);
 
 	useEffect(() => {
 		fetchPrinters();
-	}, []);
+	}, [fetchPrinters]);
 
 	const applyFilters = (printers: Printer[]) => {
 		let filteredPrinters = [...printers];
@@ -123,9 +110,9 @@ const PrinterPage = () => {
 			});
 		}
 
-		if (filters.enable !== null) {
+		if (filters.enabled !== null) {
 			filteredPrinters = filteredPrinters.filter(
-				(printer) => printer.enable === filters.enable,
+				(printer) => printer.enabled === filters.enabled,
 			);
 		}
 
@@ -146,12 +133,25 @@ const PrinterPage = () => {
 		try {
 			if (editingPrinter) {
 				await axios.put(
-					`/v1/officer/printer/${editingPrinter.id}`,
+					`/v1/officer/printer/${editingPrinter._id}`,
 					formData,
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+						},
+					},
 				);
 				toast.success('Máy in đã được cập nhật');
 			} else {
-				const response = await axios.post('/v1/officer/printer', formData);
+				const response = await axios.post(
+					'/v1/officer/printer',
+					formData,
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+						},
+					},
+				);
 				toast.success('Máy in đã được thêm');
 				setPrinters([...printers, response.data]);
 			}
@@ -172,7 +172,11 @@ const PrinterPage = () => {
 	const handleConfirmDelete = async () => {
 		if (printerToDelete) {
 			try {
-				await axios.delete(`/v1/officer/printer/${printerToDelete}`);
+				await axios.delete(`/v1/officer/printer/${printerToDelete}`, {
+					headers: {
+						Authorization: `Bearer ${accessToken}`,
+					},
+				});
 				toast.success('Máy in đã được xóa');
 				fetchPrinters();
 			} catch (error) {
@@ -184,7 +188,6 @@ const PrinterPage = () => {
 		setPrinterToDelete(null);
 	};
 
-	
 	const handleEdit = (printer: Printer) => {
 		setEditingPrinter(printer);
 		setFormData(printer);
@@ -195,14 +198,14 @@ const PrinterPage = () => {
 		setFormData({
 			brand: '',
 			model: '',
-			dateAdded: new Date().toISOString().split('T')[0],
+			dateAdded: new Date().toISOString(),
 			description: '',
 			building: '',
 			room: '',
-			enable: true,
-			delete: false,
-			campus: '',
-			lastmodified: new Date().toISOString().split('T')[0],
+			enabled: true,
+			deleted: false,
+			campus: 'CS2',
+			lastModified: new Date().toISOString(),
 		});
 		setEditingPrinter(null);
 	};
@@ -294,11 +297,22 @@ const PrinterPage = () => {
 											<div className='flex items-center gap-2'>
 												Tình Trạng
 												<select
-													value={filters.enable !== null ? filters.enable.toString() : ''}
+													value={
+														filters.enabled !== null
+															? filters.enabled.toString()
+															: ''
+													}
 													onChange={(e) =>
 														setFilters((prev) => ({
 															...prev,
-															enable: e.target.value === '' ? null : e.target.value === 'true',
+															enabled:
+																e.target
+																	.value ===
+																''
+																	? null
+																	: e.target
+																			.value ===
+																		'true',
 														}))
 													}
 													className='ml-2 rounded-md border border-gray-300 px-2 py-1 text-sm'
@@ -325,7 +339,7 @@ const PrinterPage = () => {
 								<tbody>
 									{paginatedPrinters.map((printer) => (
 										<tr
-											key={printer.id}
+											key={printer._id}
 											className='border-b hover:bg-gray-50'
 										>
 											<td className='p-4'>
@@ -343,13 +357,18 @@ const PrinterPage = () => {
 											<td className='flex items-center justify-center p-4'>
 												<span
 													className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-														printer.enable
+														printer.enabled
 															? 'bg-green-100 text-green-800'
 															: 'bg-red-100 text-red-800'
 													}`}
 												>
-													{printer.enable ? 'Hoạt động' : 'Không hoạt động'}
+													{printer.enabled
+														? 'Hoạt động'
+														: 'Không hoạt động'}
 												</span>
+											</td>
+											<td className='p-4 text-sm text-gray-500'>
+												{formatDate(printer.dateAdded)}
 											</td>
 											<td className='p-4'>
 												<div className='flex gap-2'>
@@ -366,7 +385,7 @@ const PrinterPage = () => {
 													<button
 														onClick={() =>
 															handleDeleteClick(
-																printer.id,
+																printer._id,
 															)
 														}
 														className='rounded p-2 text-red-600 hover:bg-red-50'
@@ -460,84 +479,45 @@ const PrinterPage = () => {
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									/>
 								</div>
-								{/* <div>
-									<label className='block text-sm font-medium text-gray-700'>
-										Số Lượng Giấy
-									</label>
-									<input
-										type='number'
-										required
-										min='0'
-										value={formData.paperQuantity}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												paperQuantity: parseInt(
-													e.target.value,
-												),
-											}))
-										}
-										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
-									/>
-								</div> */}
 								<div>
 									<label className='block text-sm font-medium text-gray-700'>
 										Ngày Thêm
 									</label>
 									<input
-										type='date'
+										type='datetime-local'
 										required
-										value={formData.dateAdded}
+										value={formData.dateAdded.slice(0, 16)}
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												dateAdded: e.target.value,
+												dateAdded: new Date(
+													e.target.value,
+												).toISOString(),
 											}))
 										}
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									/>
 								</div>
-								{/* <div>
-									<label className='block text-sm font-medium text-gray-700'>
-										Loại Máy In
-									</label>
-									<select
-										required
-										value={formData.type}
-										onChange={(e) =>
-											setFormData((prev) => ({
-												...prev,
-												type: e.target
-													.value as Printer['type'],
-											}))
-										}
-										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
-									>
-										<option value='laser'>Laser</option>
-										<option value='inkjet'>Phun mực</option>
-										<option value='thermal'>Nhiệt</option>
-										<option value='multifunction'>
-											Đa chức năng
-										</option>
-									</select>
-								</div> */}
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label className='block text-sm font-medium text-gray-700'>
 										Tình Trạng
 									</label>
 									<select
 										required
-										value={formData.enable.toString()}
+										value={formData.enabled.toString()}
 										onChange={(e) =>
-										setFormData((prev) => ({
-											...prev,
-											enable: e.target.value === "true",
-										}))
+											setFormData((prev) => ({
+												...prev,
+												enabled:
+													e.target.value === 'true',
+											}))
 										}
-										className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									>
-										<option value="true">Hoạt động</option>
-										<option value="false">Không hoạt động</option>
+										<option value='true'>Hoạt động</option>
+										<option value='false'>
+											Không hoạt động
+										</option>
 									</select>
 								</div>
 								<div>
@@ -573,13 +553,32 @@ const PrinterPage = () => {
 										onChange={(e) =>
 											setFormData((prev) => ({
 												...prev,
-												floor: e.target.value,
+												room: e.target.value,
 											}))
 										}
 										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 										pattern='^[0-9]{3}$'
 										title='Floor should be a 3-digit number (e.g., 201)'
 									/>
+								</div>
+								<div>
+									<label className='block text-sm font-medium text-gray-700'>
+										Campus
+									</label>
+									<select
+										required
+										value={formData.campus}
+										onChange={(e) =>
+											setFormData((prev) => ({
+												...prev,
+												campus: e.target.value,
+											}))
+										}
+										className='mt-1 block w-full rounded-md border border-gray-300 p-2'
+									>
+										<option value='CS1'>CS1</option>
+										<option value='CS2'>CS2</option>
+									</select>
 								</div>
 							</div>
 							<div>
@@ -591,11 +590,12 @@ const PrinterPage = () => {
 									onChange={(e) =>
 										setFormData((prev) => ({
 											...prev,
-											note: e.target.value,
+											description: e.target.value,
 										}))
 									}
 									className='mt-1 block w-full rounded-md border border-gray-300 p-2'
 									rows={3}
+									required
 								/>
 							</div>
 							<div className='flex justify-end gap-4'>
@@ -622,7 +622,6 @@ const PrinterPage = () => {
 				</div>
 			)}
 
-			
 			<ConfirmModal
 				isOpen={isConfirmModalOpen}
 				title='Xóa Máy In'

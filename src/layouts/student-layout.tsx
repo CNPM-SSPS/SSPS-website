@@ -9,16 +9,14 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 const StudentLayout = () => {
 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 	const navigate = useNavigate();
-	const location = useLocation(); 
-  
+	const location = useLocation();
+
 	useEffect(() => {
-	  if (isAuthenticated && location.pathname === '/my') {
-		navigate('/my');
-	  }
+		if (isAuthenticated && location.pathname === '/my') {
+			navigate('/my');
+		}
 	}, [isAuthenticated, location.pathname, navigate]);
 
-
-	
 	return (
 		<div className='flex min-h-screen flex-col'>
 			<Helmet>

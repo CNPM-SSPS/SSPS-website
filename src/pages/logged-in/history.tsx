@@ -1,78 +1,55 @@
 import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useEffect, useMemo, useState } from 'react';
+import axios from 'axios';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
-import axios from 'axios';
 
-// interface Printer {
-// 	id: string;
-// 	room: string;
-// 	building: string;
-// 	campus: string;
-// 	description: string;
-// 	model: string;
-// 	brand: string;
-// 	enable: boolean;
-// 	delete: boolean;
-// 	dateAdded: string;
-// 	lastmodified: string;
-// }
-// interface StudentInfo {
-// 	id: string;
-// 	name: string;
-// 	email: string;
-// 	studentID: string;
-// 	department: string;
-// 	isEmailVerified: boolean;
-// 	paper: number[];
-// 	role: string;
-// 	__t: 'Student';
-// }
+interface Printer {
+	_id: string;
+	room: string;
+	building: string;
+	campus: string;
+	description: string;
+	model: string;
+	brand: string;
+	enabled: boolean;
+	deleted: boolean;
+	dateAdded: string;
+	lastModified: string;
+	__v?: number;
+}
+
+interface PrintingFile {
+	_id: string;
+	user: string;
+	fileName: string;
+	fileType: string;
+	pageSize: string;
+	pageCount: number;
+	printed: boolean;
+	path: string;
+	dateUploaded: string;
+	__v: number;
+}
 
 interface PrintHistory {
 	id: string;
-	date: string;   //monthYear: string;  	dateTime: string;
-	user: string;   // studentName: string;  // studentCode: string;
-	printer: string; // printerName: string; // printerCode: string;  //location: string;
-	printCount: 2 //printedPages: number;
-	//purpose: string; không có
-	status: string //printerStatus: string;
-	printType: string; 
-	totalCost: number
-	color: boolean
-	//administrator: string; không rõ
-	//note: string; không rõ
+	user: null | string;
+	printer: Printer | null;
+	printingFile: string | PrintingFile;
+	status: string;
+	printingErrorID: string | null;
+	color: boolean;
+	printType: 'single-sided' | 'two-sided';
+	printCount: number;
+	supportTicketID: string | null;
+	totalCost: number;
+	date: string;
 }
-// const PRINT_HISTORY: PrintHistory[] = Array.from(
-// 	{ length: 50 },
-// 	(_, index) => ({
-// 		id: `history_${index + 1}`,
-// 		monthYear: `${Math.floor(Math.random() * 12) + 1}/2024`,
-// 		studentName: `SV ${index + 1}`,
-// 		studentCode: `MEOMEO${Math.floor(10000 + Math.random() * 90000)}`,
-// 		printerName: `Máy ${index + 1}`,
-// 		printerCode: `PR${Math.floor(1000 + Math.random() * 9000)}`,
-// 		location: `H${(index % 3) + 1}-${Math.floor(100 + Math.random() * 900)}`,
-// 		printedPages: Math.floor(1 + Math.random() * 100),
-// 		dateTime: new Date(
-// 			2024,
-// 			Math.floor(Math.random() * 12),
-// 			Math.floor(1 + Math.random() * 28),
-// 		)
-// 			.toISOString()
-// 			.slice(0, 16)
-// 			.replace('T', ' '),
-// 		purpose: ['Bài tập', 'Cá nhân', 'Dự án', 'Nghiên cứu'][
-// 			Math.floor(Math.random() * 4)
-// 		],
-// 		printerStatus: ['active', 'maintenance'][Math.floor(Math.random() * 2)],
-// 		administrator: `Giáo viên ${Math.floor(1 + Math.random() * 5)}`,
-// 		note: Math.random() > 0.7 ? 'Con vịt béo' : '',
-// 	}),
-// );
 
 const PrintHistory = () => {
+	const token = localStorage.getItem('accessToken');
 	const [printLogs, setPrintLogs] = useState<PrintHistory[]>([]);
 	const [searchText, setSearchText] = useState('');
 	const [filters, setFilters] = useState({
@@ -80,26 +57,42 @@ const PrintHistory = () => {
 		status: '',
 		date: '',
 		user: '',
+		printType: '',
 	});
 	const [currentPage, setCurrentPage] = useState(1);
 	const [selectedLog, setSelectedLog] = useState<PrintHistory | null>(null);
 	const pageSize = 10;
 
-	// Fetch all print logs
-	const fetchPrintLogs = async () => {
+	const fetchPrinters = useCallback(async () => {
 		try {
-			const response = await axios.get('/v1/officer/printinglog');
+			const response = await axios.get('/v1/officer/printinglog', {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
 			setPrintLogs(response.data);
 		} catch (error) {
-			toast.error('Không thể tải danh sách lịch sử in');
-			console.error(error);
+			if (axios.isAxiosError(error)) {
+				if (error.response?.status === 401) {
+					localStorage.clear();
+				}
+				toast.error('Không thể tải danh sách lịch sử in');
+				console.error(error);
+			}
 		}
-	};
+	}, []);
 
-	// Fetch detailed info of a specific print log
+	useEffect(() => {
+		fetchPrinters();
+	}, [fetchPrinters]);
+
 	const fetchPrintLogDetail = async (id: string) => {
 		try {
-			const response = await axios.get(`/v1/student/printinglog/${id}`);
+			const response = await axios.get(`/v1/officer/printinglog/${id}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			});
 			setSelectedLog(response.data);
 		} catch (error) {
 			toast.error('Không thể tải thông tin chi tiết');
@@ -107,30 +100,58 @@ const PrintHistory = () => {
 		}
 	};
 
-	useEffect(() => {
-		fetchPrintLogs();
-	}, []);
-
-	// Filtered data based on search and filters
 	const filteredData = useMemo(() => {
 		return printLogs.filter((record) => {
-			const matchesSearch = record.user
-				.toLowerCase()
-				.includes(searchText.toLowerCase());
+			const matchesSearch =
+				searchText === '' ||
+				(record.user &&
+					record.user
+						.toLowerCase()
+						.includes(searchText.toLowerCase()));
+
 			const matchesFilters = Object.entries(filters).every(
 				([key, value]) => {
 					if (!value) return true;
-					const recordValue = record[key as keyof PrintHistory]
-						?.toString()
-						.toLowerCase();
-					return recordValue?.includes(value.toLowerCase());
+
+					switch (key) {
+						case 'printer':
+							return (
+								record.printer &&
+								`${record.printer.building} ${record.printer.room}`
+									.toLowerCase()
+									.includes(value.toLowerCase())
+							);
+
+						case 'date':
+							return record.date.split('T')[0] === value;
+
+						case 'status':
+							return (
+								record.status.toLowerCase() ===
+								value.toLowerCase()
+							);
+
+						case 'printType':
+							return record.printType === value;
+
+						case 'user':
+							return (
+								record.user &&
+								record.user
+									.toLowerCase()
+									.includes(value.toLowerCase())
+							);
+
+						default:
+							return true;
+					}
 				},
 			);
+
 			return matchesSearch && matchesFilters;
 		});
 	}, [searchText, filters, printLogs]);
 
-	// Paginate data
 	const paginatedData = useMemo(() => {
 		const startIndex = (currentPage - 1) * pageSize;
 		return filteredData.slice(startIndex, startIndex + pageSize);
@@ -141,33 +162,6 @@ const PrintHistory = () => {
 	const handleRowClick = (id: string) => {
 		fetchPrintLogDetail(id);
 	};
-
-	// function filterPrintHistory(
-	// 	data: PrintHistory[],
-	// 	filters: {
-	// 		user?: string;
-	// 		date?: string; 
-	// 		printer?: string;
-	// 	}
-	// ): PrintHistory[] {
-	// 	return data.filter((record) => {
-	// 		const matchesUser = filters.user
-	// 			? record.user.toLowerCase().includes(filters.user.toLowerCase())
-	// 			: true;
-	
-	// 		const matchesDate = filters.date
-	// 			? record.date === filters.date
-	// 			: true;
-	
-	// 		const matchesPrinter = filters.printer
-	// 			? record.printer.toLowerCase().includes(filters.printer.toLowerCase())
-	// 			: true;
-	
-	// 		return matchesUser && matchesDate && matchesPrinter;
-	// 	});
-	// }
-
-
 
 	return (
 		<div className='h-full bg-gradient-to-br from-blue-50 to-white p-6'>
@@ -183,10 +177,10 @@ const PrintHistory = () => {
 
 				<div className='rounded-lg bg-white p-6 shadow-lg'>
 					<div className='mb-6 flex flex-col flex-wrap gap-4'>
-					<div className='relative'>
+						<div className='relative'>
 							<input
 								type='text'
-								placeholder='Tìm kiếm theo mã sinh viên'
+								placeholder='Tìm kiếm...'
 								value={searchText}
 								onChange={(e) => setSearchText(e.target.value)}
 								className='w-full rounded-md border border-gray-300 py-2 pl-10 pr-4 focus:border-blue-500 focus:outline-none'
@@ -205,7 +199,10 @@ const PrintHistory = () => {
 									placeholder='Người dùng'
 									value={filters.user}
 									onChange={(e) =>
-										setFilters((prev) => ({ ...prev, user: e.target.value }))
+										setFilters((prev) => ({
+											...prev,
+											user: e.target.value,
+										}))
 									}
 									className='rounded-md border border-gray-300 p-2'
 								/>
@@ -215,7 +212,10 @@ const PrintHistory = () => {
 									placeholder='Máy in'
 									value={filters.printer}
 									onChange={(e) =>
-										setFilters((prev) => ({ ...prev, printer: e.target.value }))
+										setFilters((prev) => ({
+											...prev,
+											printer: e.target.value,
+										}))
 									}
 									className='rounded-md border border-gray-300 p-2'
 								/>
@@ -223,61 +223,139 @@ const PrintHistory = () => {
 								<select
 									value={filters.status}
 									onChange={(e) =>
-										setFilters((prev) => ({ ...prev, status: e.target.value }))
+										setFilters((prev) => ({
+											...prev,
+											status: e.target.value,
+										}))
 									}
 									className='rounded-md border border-gray-300 p-2'
 								>
 									<option value=''>Trạng thái</option>
-									<option value='Hoạt Động'>Hoạt Động</option>
-									<option value='Hết mực'>Hết mực</option>
+									<option value='success'>Thành công</option>
+									<option value='error'>Thất bại</option>
 								</select>
 
-
+								<select
+									value={filters.printType}
+									onChange={(e) =>
+										setFilters((prev) => ({
+											...prev,
+											printType: e.target.value,
+										}))
+									}
+									className='rounded-md border border-gray-300 p-2'
+								>
+									<option value=''>Loại in</option>
+									<option value='single-sided'>
+										Một mặt
+									</option>
+									<option value='two-sided'>Hai mặt</option>
+								</select>
 
 								<input
 									type='date'
 									value={filters.date}
 									onChange={(e) =>
-										setFilters((prev) => ({ ...prev, date: e.target.value }))
+										setFilters((prev) => ({
+											...prev,
+											date: e.target.value,
+										}))
 									}
 									className='rounded-md border border-gray-300 p-2'
 								/>
 							</div>
 						</div>
-
-						
 					</div>
 
 					<div className='overflow-x-auto'>
-						<table className="w-full border-collapse border border-gray-300">
+						<table className='w-full border-collapse border border-gray-300'>
 							<thead>
 								<tr>
-									<th className="border border-gray-300 p-2">Người dùng</th>
-									<th className="border border-gray-300 p-2">Máy in</th>
-									<th className="border border-gray-300 p-2">Số trang in</th>
-									<th className="border border-gray-300 p-2">Ngày</th>
-									<th className="border border-gray-300 p-2">Trạng thái</th>
+									<th className='border border-gray-300 p-2'>
+										Mã Tài Liệu
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Máy In
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Loại In
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Số Trang
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Chi Phí
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Thời Gian
+									</th>
+									<th className='border border-gray-300 p-2'>
+										Trạng Thái
+									</th>
 								</tr>
 							</thead>
 							<tbody>
-								{paginatedData.map((log) => {
-									const { id, user, printer, printCount, date, status } = log;
-
-									return (
-										<tr
-											key={id}
-											onClick={() => handleRowClick(id)}
-											className="cursor-pointer hover:bg-gray-100"
-										>
-											{/* Hiển thị từng cột của dòng */}
-											<td className="border border-gray-300 p-2">{user}</td>
-											<td className="border border-gray-300 p-2">{printer}</td>
-											<td className="border border-gray-300 p-2">{printCount}</td>
-											<td className="border border-gray-300 p-2">{date}</td>
-											<td className="border border-gray-300 p-2">{status}</td>
-										</tr>
-									);
-								})}
+								{paginatedData.map((log) => (
+									<tr
+										key={log.id}
+										onClick={() => handleRowClick(log.id)}
+										className='cursor-pointer hover:bg-gray-100'
+									>
+										<td className='border border-gray-300 p-2'>
+											{typeof log.printingFile ===
+											'object'
+												? log.printingFile.fileName
+												: log.printingFile}
+										</td>
+										<td className='border border-gray-300 p-2'>
+											{log.printer
+												? `${log.printer.building} - Phòng ${log.printer.room}`
+												: 'N/A'}
+										</td>
+										<td className='border border-gray-300 p-2'>
+											<div className='flex flex-col'>
+												<span>
+													{log.color
+														? 'Màu'
+														: 'Đen trắng'}
+												</span>
+												<span className='text-sm text-gray-500'>
+													{log.printType ===
+													'two-sided'
+														? 'In 2 mặt'
+														: 'In 1 mặt'}
+												</span>
+											</div>
+										</td>
+										<td className='border border-gray-300 p-2 text-center'>
+											{log.printCount}
+										</td>
+										<td className='border border-gray-300 p-2 text-right'>
+											{new Intl.NumberFormat('vi-VN', {
+												style: 'currency',
+												currency: 'VND',
+											}).format(log.totalCost)}
+										</td>
+										<td className='border border-gray-300 p-2'>
+											{new Date(log.date).toLocaleString(
+												'vi-VN',
+											)}
+										</td>
+										<td className='border border-gray-300 p-2'>
+											<span
+												className={`rounded-full px-2 py-1 text-sm ${
+													log.status === 'success'
+														? 'bg-green-100 text-green-800'
+														: 'bg-red-100 text-red-800'
+												}`}
+											>
+												{log.status === 'success'
+													? 'Thành công'
+													: 'Thất bại'}
+											</span>
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 					</div>
@@ -321,6 +399,136 @@ const PrintHistory = () => {
 					</div>
 				</div>
 			</div>
+			{selectedLog && (
+				<div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4'>
+					<div className='w-full max-w-2xl rounded-lg bg-white p-6'>
+						<div className='mb-4 flex items-center justify-between'>
+							<h2 className='text-lg font-medium text-gray-900'>
+								Chi Tiết Lịch Sử In
+							</h2>
+							<button
+								onClick={() => setSelectedLog(null)}
+								className='text-gray-500 hover:text-gray-700'
+							>
+								✕
+							</button>
+						</div>
+
+						<div className='grid grid-cols-2 gap-4'>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Tên Tập Tin
+								</p>
+								<p className='font-medium'>
+									{typeof selectedLog.printingFile ===
+									'object'
+										? selectedLog.printingFile.fileName
+										: selectedLog.printingFile}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Loại Tập Tin
+								</p>
+								<p className='font-medium'>
+									{typeof selectedLog.printingFile ===
+									'object'
+										? selectedLog.printingFile.fileType
+										: 'N/A'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Số Trang Tài Liệu
+								</p>
+								<p className='font-medium'>
+									{typeof selectedLog.printingFile ===
+									'object'
+										? selectedLog.printingFile.pageCount
+										: 'N/A'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Kích Thước
+								</p>
+								<p className='font-medium'>
+									{typeof selectedLog.printingFile ===
+									'object'
+										? `${(parseInt(selectedLog.printingFile.pageSize) / 1024 / 1024).toFixed(2)} MB`
+										: 'N/A'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Thời Gian Tải Lên
+								</p>
+								<p className='font-medium'>
+									{typeof selectedLog.printingFile ===
+									'object'
+										? new Date(
+												selectedLog.printingFile.dateUploaded,
+											).toLocaleString('vi-VN')
+										: 'N/A'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>Máy In</p>
+								<p className='font-medium'>
+									{selectedLog.printer
+										? `${selectedLog.printer.building} - Phòng ${selectedLog.printer.room}`
+										: 'N/A'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>Loại In</p>
+								<p className='font-medium'>
+									{selectedLog.color ? 'Màu' : 'Đen trắng'} -{' '}
+									{selectedLog.printType === 'two-sided'
+										? 'In 2 mặt'
+										: 'In 1 mặt'}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Số Trang In
+								</p>
+								<p className='font-medium'>
+									{selectedLog.printCount}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>Chi Phí</p>
+								<p className='font-medium'>
+									{new Intl.NumberFormat('vi-VN', {
+										style: 'currency',
+										currency: 'VND',
+									}).format(selectedLog.totalCost)}
+								</p>
+							</div>
+							<div>
+								<p className='text-sm text-gray-500'>
+									Thời Gian In
+								</p>
+								<p className='font-medium'>
+									{new Date(selectedLog.date).toLocaleString(
+										'vi-VN',
+									)}
+								</p>
+							</div>
+						</div>
+
+						<div className='mt-6 flex justify-end'>
+							<button
+								onClick={() => setSelectedLog(null)}
+								className='rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
+							>
+								Đóng
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

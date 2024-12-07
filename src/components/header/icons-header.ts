@@ -1,9 +1,13 @@
 import {
+	faAngleDown,
 	faBars,
 	faBook,
+	faHistory,
 	faHome,
+	faMoneyBill,
 	faSchool,
 	faSignInAlt,
+	faUser,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const IconsHeader = {
@@ -12,4 +16,8 @@ export const IconsHeader = {
 	home: faHome,
 	school: faSchool,
 	signIn: faSignInAlt,
+	user: faUser,
+	history: faHistory,
+	moneyBill: faMoneyBill,
+	angleDown: faAngleDown,
 } as const;

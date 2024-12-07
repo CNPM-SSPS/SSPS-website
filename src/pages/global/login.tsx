@@ -48,13 +48,13 @@ const LOGIN_MESSAGES = {
 	invalidCredentials: 'Email hoặc mật khẩu không chính xác',
 } as const;
 
-const Login = () => {
+const Login: React.FC = () => {
 	const navigate = useNavigate();
 	const [loginType, setLoginType] = useState<LoginType>('student');
 	const [formData, setFormData] = useState<LoginFormData>({
 		email: '',
 		password: '',
-		rememberMe: false,
+		rememberMe: true,
 	});
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,7 +77,7 @@ const Login = () => {
 
 		try {
 			const response = await fetch('/v1/auth/login', {
- 				method: 'POST',
+				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},

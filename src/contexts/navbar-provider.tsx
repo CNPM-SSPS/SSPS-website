@@ -1,5 +1,5 @@
+import { NavbarContext } from '@/contexts/navbar-context';
 import { useMemo, useState } from 'react';
-import { NavbarContext } from './navbar-context';
 
 export const NavbarProvider = ({ children }: { children: React.ReactNode }) => {
 	const [isCollapsed, setIsCollapsed] = useState(false);

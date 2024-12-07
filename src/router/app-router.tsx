@@ -11,21 +11,19 @@ import {
 	RouterProvider,
 	useLocation,
 } from 'react-router-dom';
-import UsageReport from '../pages/logged-in/report';
-import PrintPage from '../pages/student/components/print';
+const UsageReport = lazy(() => import('@/pages/logged-in/report'));
+const PrintPage = lazy(() => import('@/pages/student/components/print'));
 const Login = lazy(() => import('@/pages/global/login'));
 const Lorem = lazy(() => import('@/pages/global/lorem'));
 const NotFound = lazy(() => import('@/pages/not-found'));
-const Account = lazy(() => import('@/pages/student/Account') );
-const SettingPage = lazy(() => import('@/pages/student/Setting') );
+const Account = lazy(() => import('@/pages/student/Account'));
+const SettingPage = lazy(() => import('@/pages/student/Setting'));
 const Help = lazy(() => import('@/pages/student/Help'));
 const History_print = lazy(() => import('@/pages/student/History_Print'));
 
 const RootLayout = lazy(() => import('@/layouts/root-layout'));
 const LoggedInLayout = lazy(() => import('@/layouts/logged-in-layout'));
 const StudentLayout = lazy(() => import('@/layouts/student-layout'));
-const Setting_layout = lazy(() => import('@/layouts/setting_layout'));
-
 
 const LoadingSpinner = () => (
 	<div className='flex min-h-screen items-center justify-center'>
@@ -33,7 +31,7 @@ const LoadingSpinner = () => (
 	</div>
 );
 
-const AuthGuard = ({ children }: { children: React.ReactNode }) => {
+const AuthGuard: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
 	const location = useLocation();
 	const isStudent = localStorage.getItem('userRole') === 'user';
@@ -79,7 +77,6 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-				
 			],
 		},
 
@@ -87,7 +84,7 @@ const router = createBrowserRouter(
 			path: '/my',
 			element: (
 				<Suspense fallback={<LoadingSpinner />}>
-					  <StudentLayout />  
+					<StudentLayout />
 				</Suspense>
 			),
 			children: [
@@ -95,23 +92,19 @@ const router = createBrowserRouter(
 					index: true,
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							 <Account /> 
+							<Account />
 						</Suspense>
 					),
 				},
 
-				
-				//quan ly tai khoan
 				{
 					path: 'quan-ly-tai-khoan',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-								<SettingPage />
+							<SettingPage />
 						</Suspense>
 					),
-					
 				},
-				
 
 				{
 					path: 'help',
@@ -121,16 +114,13 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-
-			
-			
 			],
 		},
-        { //đang fix
+		{
 			path: '/in-tai-lieu',
 			element: (
 				<Suspense fallback={<LoadingSpinner />}>
-					  <StudentLayout />  
+					<StudentLayout />
 				</Suspense>
 			),
 			children: [
@@ -138,7 +128,7 @@ const router = createBrowserRouter(
 					index: true,
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							 <PrintPage /> 
+							<PrintPage />
 						</Suspense>
 					),
 				},
@@ -149,7 +139,7 @@ const router = createBrowserRouter(
 			path: '/lich-su-in',
 			element: (
 				<Suspense fallback={<LoadingSpinner />}>
-					  <StudentLayout />  
+					<StudentLayout />
 				</Suspense>
 			),
 			children: [
@@ -157,17 +147,17 @@ const router = createBrowserRouter(
 					index: true,
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							 <History_print /> 
+							<History_print />
 						</Suspense>
 					),
 				},
 			],
 		},
-        {
+		{
 			path: '/thanh-toan',
 			element: (
 				<Suspense fallback={<LoadingSpinner />}>
-					  <StudentLayout />  
+					<StudentLayout />
 				</Suspense>
 			),
 			children: [
@@ -175,13 +165,12 @@ const router = createBrowserRouter(
 					index: true,
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							 <PaymentPage/> 
+							<PaymentPage />
 						</Suspense>
 					),
 				},
 			],
 		},
-
 
 		{
 			path: '/dashboard',
@@ -213,7 +202,7 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-				
+
 				{
 					path: 'lich-su-in',
 					element: (
