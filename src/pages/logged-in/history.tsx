@@ -104,8 +104,8 @@ const PrintHistory = () => {
 		return printLogs.filter((record) => {
 			const matchesSearch =
 				searchText === '' ||
-				(record.user &&
-					record.user
+				(record.user.name && record.user.studentID && 
+					(record.user.name + ' ( ' + record.user.studentID + ' ) ')
 						.toLowerCase()
 						.includes(searchText.toLowerCase()));
 
@@ -136,8 +136,8 @@ const PrintHistory = () => {
 
 						case 'user':
 							return (
-								record.user &&
-								record.user
+								record.user.name && record.user.studentID &&
+								(record.user.name + ' ( ' + record.user.studentID + ' ) ')
 									.toLowerCase()
 									.includes(value.toLowerCase())
 							);
@@ -272,7 +272,7 @@ const PrintHistory = () => {
 							<thead>
 								<tr>
 									<th className='border border-gray-300 p-2'>
-										Mã Tài Liệu
+										Người in
 									</th>
 									<th className='border border-gray-300 p-2'>
 										Máy In
@@ -302,10 +302,7 @@ const PrintHistory = () => {
 										className='cursor-pointer hover:bg-gray-100'
 									>
 										<td className='border border-gray-300 p-2'>
-											{typeof log.printingFile ===
-											'object'
-												? log.printingFile.fileName
-												: log.printingFile}
+											{log.user.name + ' ( ' + log.user.studentID + ' ) '}
 										</td>
 										<td className='border border-gray-300 p-2'>
 											{log.printer
