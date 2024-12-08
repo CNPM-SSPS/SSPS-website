@@ -5,7 +5,6 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 const SettingPage: React.FC = () => {
-  // Initialize state for selected date
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   // Handle date change
@@ -13,9 +12,7 @@ const SettingPage: React.FC = () => {
     setSelectedDate(date); // Update state with the new date
   };
 
-  // Initialize state for file formats
   const [fileFormats, setFileFormats] = useState<string[]>(() => {
-    // Load from localStorage if exists, otherwise return empty array
     const storedFormats = localStorage.getItem('fileFormats');
     return storedFormats ? JSON.parse(storedFormats) : [];
   });
@@ -31,7 +28,7 @@ const SettingPage: React.FC = () => {
     if (inputValue && !fileFormats.includes(inputValue)) {
       const updatedFormats = [...fileFormats, inputValue];
       setFileFormats(updatedFormats);
-      localStorage.setItem('fileFormats', JSON.stringify(updatedFormats)); // Save to localStorage
+      localStorage.setItem('fileFormats', JSON.stringify(updatedFormats));
       setInputValue('');
     }
   };
@@ -40,12 +37,11 @@ const SettingPage: React.FC = () => {
   const handleRemoveFormat = (format: string) => {
     const updatedFormats = fileFormats.filter(item => item !== format);
     setFileFormats(updatedFormats);
-    localStorage.setItem('fileFormats', JSON.stringify(updatedFormats)); // Save to localStorage
+    localStorage.setItem('fileFormats', JSON.stringify(updatedFormats));
   };
 
   // State for Default Monthly Pages
   const [defaultMonthlyPages, setDefaultMonthlyPages] = useState<string>(() => {
-    // Load from localStorage if exists, otherwise return empty string
     const storedPages = localStorage.getItem('defaultMonthlyPages');
     return storedPages ? storedPages : '';
   });
@@ -53,18 +49,16 @@ const SettingPage: React.FC = () => {
   // Handle input change for Default Monthly Pages
   const handleMonthlyPagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDefaultMonthlyPages(e.target.value);
-    localStorage.setItem('defaultMonthlyPages', e.target.value); // Save to localStorage
+    localStorage.setItem('defaultMonthlyPages', e.target.value);
   };
 
   // Initialize state for Monthly Paper Issue Date (optional, depending on if you want to persist it)
   useEffect(() => {
-    // Optionally, persist selectedDate to localStorage if needed
     if (selectedDate) {
       localStorage.setItem('selectedDate', selectedDate.toISOString());
     }
   }, [selectedDate]);
 
-  // Load selected date from localStorage on component mount
   useEffect(() => {
     const storedDate = localStorage.getItem('selectedDate');
     if (storedDate) {
@@ -100,7 +94,11 @@ const SettingPage: React.FC = () => {
             selected={selectedDate}
             onChange={handleDateChange}
             className="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500"
-            dateFormat="dd/MM/yyyy" // Customize the display format if needed
+            dateFormat="dd" // Only display the day
+            showMonthDropdown={false} // Hide month dropdown
+            showYearDropdown={false} // Hide year dropdown
+            peekNextMonth
+            showMonthYearPicker={false} // Prevent month/year picker
           />
         </div>
 
