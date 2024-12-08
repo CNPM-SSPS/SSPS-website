@@ -331,7 +331,7 @@ const PrinterPage: React.FC = () => {
 										</th>
 										<th className='p-4'>
 											<div className='flex items-center justify-between gap-2'>
-												Thao Tác
+												Lần chỉnh sửa cuối
 											</div>
 										</th>
 									</tr>
