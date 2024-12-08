@@ -206,10 +206,22 @@ const PrintHistoryPage = () => {
 								<li>
 									<strong>Trạng thái:</strong> {item.status === 'success' ? 'Hoàn thành' : 'Lỗi'}
 								</li>
-								<li>
-									<strong>Lỗi:</strong>{' '}
+                {(!item.supportTicketID) && <div className="flex justify-center items-center">
+                  <button onClick={() => {
+												axios.post('/v1/student/account/support', 
+                          {
+                            "description": "Đang kiểm tra",
+                            "printinglog": item.id
+                          },
+                          {headers: {
+                            Authorization: `Bearer ${token}`,
+                          }},
+                        )
+											}} className="bg-orange-500 text-white text-base px-3 rounded hover:bg-orange-600"> Báo lỗi </button></div>}
+								{(item.supportTicketID?.description) && <li>
+                  <strong>Lỗi:</strong>{' '}
 									{item.supportTicketID?.description ?? 'Không có'}
-								</li>
+                  </li>}
                 {(item.supportTicketID?.status) && <li>
 									<strong>Đã xử lý:</strong>{' '}
 									{item.supportTicketID.status === 'open'? 'Chưa xử lý' : 'Đã xử lý'}
