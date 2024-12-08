@@ -15,8 +15,7 @@ interface LoginResponse {
 		isEmailVerified: boolean;
 		studentID?: string;
 		department?: string;
-    pageCount?: number;
-		id: string;
+			id: string;
 		__t?: string;
 	};
 	tokens: {
@@ -37,17 +36,19 @@ interface LoginFormData {
 	rememberMe: boolean;
 }
 
-interface ErrorResponse {
-	code: number;
-	message: string;
-}
-
 const LOGIN_MESSAGES = {
 	success: 'Đăng nhập thành công',
 	error: 'Có lỗi xảy ra khi đăng nhập',
 	emptyFields: 'Vui lòng nhập đầy đủ thông tin',
 	invalidCredentials: 'Email hoặc mật khẩu không chính xác',
 } as const;
+
+const validateEmail = (email: string) => {
+	// Modified validation to handle HCMUT email format
+	return (
+		email.endsWith('@hcmut.edu.vn') && email.length > '@hcmut.edu.vn'.length
+	);
+};
 
 const Login: React.FC = () => {
 	const navigate = useNavigate();
@@ -60,9 +61,16 @@ const Login: React.FC = () => {
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
+
+		// Sanitize email input
+		const sanitizedValue =
+			name === 'email'
+				? value.trim().replace(/\s+/g, '') // Remove all whitespace
+				: value;
+
 		setFormData((prev) => ({
 			...prev,
-			[name]: value,
+			[name]: sanitizedValue,
 		}));
 	};
 
@@ -76,57 +84,101 @@ const Login: React.FC = () => {
 			return;
 		}
 
+		if (!validateEmail(email)) {
+			toast.error('Email phải có định dạng @hcmut.edu.vn');
+			return;
+		}
+
 		try {
+			const requestBody = { email, password };
+
+			console.log('Sending login request:', {
+				url: '/v1/auth/login',
+				email: requestBody.email,
+				passwordLength: requestBody.password.length,
+			});
+
 			const response = await fetch('/v1/auth/login', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
 				},
-				body: JSON.stringify({ email, password }),
+				body: JSON.stringify(requestBody),
 			});
 
-			if (!response.ok) {
-				const errorData: ErrorResponse = await response.json();
-				if (errorData.code === 401) {
-					throw new Error(LOGIN_MESSAGES.invalidCredentials);
-				}
-				throw new Error(LOGIN_MESSAGES.error);
-			}
-			const data: LoginResponse = await response.json();
-			localStorage.setItem('accessToken', data.tokens.access.token);
-			localStorage.setItem('refreshToken', data.tokens.refresh.token);
-			localStorage.setItem('tokenExpires', data.tokens.access.expires);
-			localStorage.setItem(
-				'refreshTokenExpires',
-				data.tokens.refresh.expires,
-			);
-			const storage = formData.rememberMe ? localStorage : sessionStorage;
-			storage.setItem('isAuthenticated', 'true');
-			storage.setItem('userRole', data.user.role);
-			storage.setItem(
-				'userData',
-				JSON.stringify({
-					id: data.user.id,
-					name: data.user.name,
-					email: data.user.email,
-					studentID: data.user.studentID,
-					department: data.user.department,
-					isEmailVerified: data.user.isEmailVerified,
-          pageCount: data.user.pageCount, 
-					__t: data.user.__t,
-				}),
-			);
+			console.log('Response status:', response.status);
+			const responseText = await response.text();
+			console.log('Raw response text:', responseText);
 
-			toast.success(LOGIN_MESSAGES.success);
-			if (data.user.role === 'user') {
-				navigate('/my');
-			} else if (data.user.role === 'admin') {
-				navigate('/dashboard/thong-tin');
+			try {
+				const parsedResponse = JSON.parse(responseText);
+				console.log('Parsed response:', parsedResponse);
+
+				if (!response.ok) {
+					console.log('Error details:', {
+						status: response.status,
+						message: parsedResponse?.message,
+						code: parsedResponse?.code,
+						data: parsedResponse?.data,
+					});
+
+					if (parsedResponse?.code === 401) {
+						throw new Error(LOGIN_MESSAGES.invalidCredentials);
+					}
+					throw new Error(
+						parsedResponse?.message || LOGIN_MESSAGES.error,
+					);
+				}
+
+				const data = parsedResponse as LoginResponse;
+				handleSuccessfulLogin(data);
+			} catch (error) {
+				console.error('Login error:', error);
+				toast.error(
+					error instanceof Error
+						? error.message
+						: LOGIN_MESSAGES.error,
+				);
 			}
 		} catch (error) {
+			console.error('Login error:', error);
 			toast.error(
 				error instanceof Error ? error.message : LOGIN_MESSAGES.error,
 			);
+		}
+	};
+
+	// Separate function to handle successful login
+	const handleSuccessfulLogin = (data: LoginResponse) => {
+		localStorage.setItem('accessToken', data.tokens.access.token);
+		localStorage.setItem('refreshToken', data.tokens.refresh.token);
+		localStorage.setItem('tokenExpires', data.tokens.access.expires);
+		localStorage.setItem(
+			'refreshTokenExpires',
+			data.tokens.refresh.expires,
+		);
+
+		const storage = formData.rememberMe ? localStorage : sessionStorage;
+		storage.setItem('isAuthenticated', 'true');
+		storage.setItem('userRole', data.user.role);
+		storage.setItem(
+			'userData',
+			JSON.stringify({
+				id: data.user.id,
+				name: data.user.name,
+				email: data.user.email,
+				studentID: data.user.studentID,
+				department: data.user.department,
+				isEmailVerified: data.user.isEmailVerified,
+				__t: data.user.__t,
+			}),
+		);
+
+		toast.success(LOGIN_MESSAGES.success);
+		if (data.user.role === 'user') {
+			navigate('/my');
+		} else if (data.user.role === 'admin') {
+			navigate('/dashboard/thong-tin');
 		}
 	};
 

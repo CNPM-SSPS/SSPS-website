@@ -59,6 +59,7 @@ const PrintPage = () => {
 	);
 	const [showPreview, setShowPreview] = useState(false);
 	const [pageBalance, setPageBalance] = useState<number>(0);
+	const [showErrorBox, setShowErrorBox] = useState(false);
 
 	useEffect(() => {
 		loadDocumentsFromCache();
@@ -158,6 +159,7 @@ const PrintPage = () => {
 				toast.error(
 					`Không đủ số trang để tải lên. Cần ${totalPagesNeeded} trang, còn ${pageBalance} trang.`,
 				);
+				setShowErrorBox(true);
 				return;
 			}
 
@@ -460,6 +462,25 @@ const PrintPage = () => {
 								</object>
 							)}
 						</div>
+					</div>
+				</div>
+			)}
+
+			{showErrorBox && (
+				<div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'>
+					<div className='rounded-lg bg-white p-6 text-center shadow-lg'>
+						<p className='mb-4 text-lg font-semibold'>
+							Không đủ số trang để tải lên.
+						</p>
+						<button
+							onClick={() =>
+								(window.location.href =
+									'http://localhost:5173/in-tai-lieu')
+							}
+							className='mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
+						>
+							Đi đến trang tài liệu
+						</button>
 					</div>
 				</div>
 			)}
