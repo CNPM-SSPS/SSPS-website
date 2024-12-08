@@ -43,11 +43,6 @@ const mainNavItems: NavItem[] = [
 		path: '/dashboard/lich-su-giao-dich',
 		icon: faMoneyBillWave,
 	},
-	{
-		title: 'Thống kê máy in',
-		path: '/dashboard/thong-ke',
-		icon: faChartBar,
-	},
   {
 		title: 'Yêu cầu hỗ trợ',
 		path: '/dashboard/ho-tro',

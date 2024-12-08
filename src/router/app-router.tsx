@@ -19,7 +19,7 @@ const Login = lazy(() => import('@/pages/global/login'));
 const Lorem = lazy(() => import('@/pages/global/lorem'));
 const NotFound = lazy(() => import('@/pages/not-found'));
 const Account = lazy(() => import('@/pages/student/Account'));
-const SettingPage = lazy(() => import('@/pages/student/Setting'));
+const SettingPage = lazy(() => import('@/pages/logged-in/Setting'));
 const Help = lazy(() => import('@/pages/student/Help'));
 const History_print = lazy(() => import('@/pages/student/History_Print'));
 
@@ -220,11 +220,11 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-				{
-					path: 'thong-ke',
+        {
+					path: 'cai-dat',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							<UsageReport />
+							<SettingPage />
 						</Suspense>
 					),
 				},

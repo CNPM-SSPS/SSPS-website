@@ -133,7 +133,7 @@ const DashboardOverview: FC = () => {
 								Thống Kê Sử Dụng
 							</h2>
 							<Link
-								to='/dashboard/thong-ke'
+								to='/dashboard/lich-su-in'
 								className='flex items-center gap-1 text-blue-500 hover:text-blue-600'
 							>
 								Xem Chi Tiết
