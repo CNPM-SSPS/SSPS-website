@@ -64,6 +64,14 @@ const saveToCache = async (doc: Document, file: File) => {
 	}
 };
 
+interface PrintSettings {
+	copies: number;
+	pages: string;
+	quality: string;
+	paperSize: string;
+	printer: string;
+}
+
 const PrintPage = () => {
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [documents, setDocuments] = useState<Document[]>([]);
@@ -73,6 +81,17 @@ const PrintPage = () => {
 	const [showPreview, setShowPreview] = useState(false);
 	const [pageBalance, setPageBalance] = useState<number>(0);
 	const [showErrorBox, setShowErrorBox] = useState(false);
+	const [showPrintSettings, setShowPrintSettings] = useState(false);
+	const [currentPrintDoc, setCurrentPrintDoc] = useState<Document | null>(
+		null,
+	);
+	const [printSettings, setPrintSettings] = useState<PrintSettings>({
+		copies: 1,
+		pages: 'all',
+		quality: '600dpi',
+		paperSize: 'Letter',
+		printer: 'HP Laser 103 107 108',
+	});
 
 	useEffect(() => {
 		loadDocumentsFromCache();
@@ -262,6 +281,19 @@ const PrintPage = () => {
 		toast.success('Đã xóa tệp khỏi danh sách chọn');
 	};
 
+	const handlePrintClick = (doc: Document) => {
+		setCurrentPrintDoc(doc);
+		setShowPrintSettings(true);
+	};
+
+	const handlePrintConfirm = async () => {
+		if (!currentPrintDoc) return;
+
+		await handlePrint(currentPrintDoc);
+		setShowPrintSettings(false);
+		setCurrentPrintDoc(null);
+	};
+
 	return (
 		<div className='container mx-auto px-4 py-8'>
 			<Helmet>
@@ -371,7 +403,9 @@ const PrintPage = () => {
 											</button>
 											<button
 												className='text-blue-500 hover:text-blue-700'
-												onClick={() => handlePrint(doc)}
+												onClick={() =>
+													handlePrintClick(doc)
+												}
 											>
 												<FontAwesomeIcon
 													icon={faPrint}
@@ -455,6 +489,147 @@ const PrintPage = () => {
 						>
 							Đi đến trang tài liệu
 						</button>
+					</div>
+				</div>
+			)}
+
+			{showPrintSettings && (
+				<div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-50'>
+					<div className='w-96 rounded-lg bg-white p-6 shadow-lg'>
+						<div className='mb-4 flex items-center justify-between'>
+							<h3 className='text-lg font-semibold'>
+								Cài đặt in
+							</h3>
+							<button
+								onClick={() => setShowPrintSettings(false)}
+								className='text-gray-500 hover:text-gray-700'
+							>
+								✕
+							</button>
+						</div>
+
+						<div className='space-y-4'>
+							<div>
+								<label className='mb-1 block text-sm font-medium'>
+									Máy in
+								</label>
+								<select
+									value={printSettings.printer}
+									onChange={(e) =>
+										setPrintSettings((prev) => ({
+											...prev,
+											printer: e.target.value,
+										}))
+									}
+									className='w-full rounded border p-2'
+								>
+									<option value='HP Laser 103 107 108'>
+										HP Laser 103 107 108
+									</option>
+									<option value='HP Laser 103 107 101'>
+										HP Laser 103 107 101
+									</option>
+									<option value='HP Laser M101-M106'>
+										HP Laser M101-M106
+									</option>
+									<option value='HP Laser P1102'>
+										HP Laser P1102
+									</option>
+								</select>
+							</div>
+
+							<div>
+								<label className='mb-1 block text-sm font-medium'>
+									Số bản sao
+								</label>
+								<input
+									type='number'
+									min='1'
+									value={printSettings.copies}
+									onChange={(e) =>
+										setPrintSettings((prev) => ({
+											...prev,
+											copies:
+												parseInt(e.target.value) || 1,
+										}))
+									}
+									className='w-full rounded border p-2'
+								/>
+							</div>
+
+							<div>
+								<label className='mb-1 block text-sm font-medium'>
+									Trang
+								</label>
+								<select
+									value={printSettings.pages}
+									onChange={(e) =>
+										setPrintSettings((prev) => ({
+											...prev,
+											pages: e.target.value,
+										}))
+									}
+									className='w-full rounded border p-2'
+								>
+									<option value='all'>Tất cả</option>
+									<option value='custom'>Tùy chỉnh</option>
+								</select>
+							</div>
+
+							<div>
+								<label className='mb-1 block text-sm font-medium'>
+									Chất lượng
+								</label>
+								<select
+									value={printSettings.quality}
+									onChange={(e) =>
+										setPrintSettings((prev) => ({
+											...prev,
+											quality: e.target.value,
+										}))
+									}
+									className='w-full rounded border p-2'
+								>
+									<option value='600dpi'>600 DPI</option>
+									<option value='300dpi'>300 DPI</option>
+								</select>
+							</div>
+
+							<div>
+								<label className='mb-1 block text-sm font-medium'>
+									Khổ giấy
+								</label>
+								<select
+									value={printSettings.paperSize}
+									onChange={(e) =>
+										setPrintSettings((prev) => ({
+											...prev,
+											paperSize: e.target.value,
+										}))
+									}
+									className='w-full rounded border p-2'
+								>
+									<option value='Letter'>Letter</option>
+									<option value='A4'>A4</option>
+									<option value='A3'>A3</option>
+								</select>
+							</div>
+						</div>
+
+						<div className='mt-6 flex justify-end space-x-3'>
+							<button
+								onClick={() => setShowPrintSettings(false)}
+								className='rounded border px-4 py-2 hover:bg-gray-100'
+							>
+								Hủy
+							</button>
+							<button
+								onClick={handlePrintConfirm}
+								className='rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
+							>
+								In
+							</button>
+						</div>
 					</div>
 				</div>
 			)}
