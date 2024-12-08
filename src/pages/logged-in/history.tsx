@@ -232,7 +232,7 @@ const PrintHistory = () => {
 								>
 									<option value=''>Trạng thái</option>
 									<option value='success'>Thành công</option>
-									<option value='error'>Thất bại</option>
+									<option value='failure'>Thất bại</option>
 								</select>
 
 								<select
