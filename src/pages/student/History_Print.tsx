@@ -207,9 +207,17 @@ const PrintHistoryPage = () => {
 									<strong>Trạng thái:</strong> {item.status === 'success' ? 'Hoàn thành' : 'Lỗi'}
 								</li>
 								<li>
-									<strong>ID lỗi (Nếu có):</strong>{' '}
-									{item.supportTicketID ?? 'Không có'}
+									<strong>Lỗi:</strong>{' '}
+									{item.supportTicketID?.description ?? 'Không có'}
 								</li>
+                {(item.supportTicketID?.status) && <li>
+									<strong>Đã xử lý:</strong>{' '}
+									{item.supportTicketID.status === 'open'? 'Chưa xử lý' : 'Đã xử lý'}
+								</li>}
+                {(item.supportTicketID?.response) && <li>
+									<strong>Phản hồi lỗi:</strong>{' '}
+									{item.supportTicketID.response}
+								</li>}
 							</ul>
 						</div>
 					))}
