@@ -1,6 +1,7 @@
 import {
 	faChevronRight,
 	faFile,
+	faMoneyBill,
 	faPrint,
 	faTriangleExclamation,
 	faUser,
@@ -10,21 +11,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FC } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link } from 'react-router-dom';
-const DASHBOARD_DATA = {
-	printers: {
-		total: 40,
-	},
-	statistics: {
-		errorsToday: 2,
-		activePrinters: 38,
-		usersPrinting: 100,
-		pagesTotal: 2728,
-		topUser: {
-			name: 'Nguyễn Văn A',
-			pages: 128,
-		},
-	},
-};
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 
 interface StatCardProps {
 	title: string;
@@ -61,8 +49,50 @@ const StatCard: FC<StatCardProps> = ({
 );
 
 const DashboardOverview: FC = () => {
-	const { printers, statistics } = DASHBOARD_DATA;
-	const activePrinters = printers.total - statistics.errorsToday;
+  const [printers, setPrinters] = useState([]);
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const token = localStorage.getItem('accessToken');
+  const [mvpUser, setMvpUser] = useState({});
+  const [todayPage, setTodayPage] = useState([]);
+
+
+  useEffect(() => {
+    const headers = {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+    const fetchPrinters = async () => {
+      const response = await axios.get('/v1/officer/printer', headers);
+      setPrinters(response.data);
+    };
+    const fetchSupportTickets = async () => {
+      const response = await axios.get('/v1/officer/support', headers);
+      setSupportTickets(response.data);
+    };
+    const fetchPages = async () => {
+      const response = await axios.get('/v1/officer/printinglog', headers);
+      setTodayPage(response.data.filter((p) => new Date(p.date).getDate() == new Date().getDate()));
+      setMvpUser(response.data.reduce((acc, cur) => (acc.printCount > cur.printCount ? acc : cur)));
+    };
+    const fetchTransactions = async () => {
+      const response = await axios.get('/v1/officer/payment', headers);
+      setTransactions(response.data);
+    }
+
+    fetchPrinters();
+    fetchSupportTickets();
+    fetchPages();
+    fetchTransactions();
+  }, [])
+  
+	const activePrintersCount = printers.filter((p) => p.enabled).length;
+  const todayErrorCount = supportTickets.filter((t) => new Date(t.createdAt).getDate() == new Date().getDate()).length;
+
+  const todayPageCount = todayPage.reduce((acc, cur) => (acc + cur.printCount), 0);
+  
+  // so error hom nay
 
 	return (
 		<>
@@ -79,20 +109,20 @@ const DashboardOverview: FC = () => {
 						<div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
 							<StatCard
 								title='Số Lượng Máy In'
-								value={printers.total}
+								value={printers.length}
 								icon={faPrint}
-								subtitle={`${activePrinters} đang hoạt động`}
+								subtitle={`${activePrintersCount} đang hoạt động`}
 							/>
 							<StatCard
 								title='Lỗi Hôm Nay'
-								value={statistics.errorsToday}
+								value={todayErrorCount}
 								icon={faTriangleExclamation}
 								className='bg-red-100'
 							/>
 							<StatCard
-								title='Người Dùng Hoạt Động'
-								value={statistics.usersPrinting}
-								icon={faUsers}
+								title='Số Giao Dịch Hôm Nay'
+								value={transactions.length}
+								icon={faMoneyBill}
 							/>
 						</div>
 					</section>
@@ -116,7 +146,7 @@ const DashboardOverview: FC = () => {
 						<div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
 							<StatCard
 								title='Số Trang Đã In Hôm Nay'
-								value={`${statistics.pagesTotal} trang`}
+								value={`${todayPageCount} trang`}
 								icon={faFile}
 							/>
 							<div className='rounded-lg bg-white p-6 shadow-sm'>
@@ -134,10 +164,10 @@ const DashboardOverview: FC = () => {
 									</div>
 									<div>
 										<p className='font-semibold'>
-											{statistics.topUser.name}
+											{mvpUser.user?.name}
 										</p>
 										<p className='text-sm text-gray-500'>
-											{statistics.topUser.pages} trang đã
+											{mvpUser.printCount} trang đã
 											in
 										</p>
 									</div>
