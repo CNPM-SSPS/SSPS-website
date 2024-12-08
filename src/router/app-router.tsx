@@ -1,6 +1,7 @@
 import Register from '@/pages/global/register';
 import CommonError from '@/pages/logged-in/common-error';
 import PrintHistory from '@/pages/logged-in/history';
+import TransactionHistory from '@/pages/logged-in/transactionhistory';
 import Info from '@/pages/logged-in/info';
 import Printer from '@/pages/logged-in/printer';
 import PaymentPage from '@/pages/student/payment';
@@ -11,6 +12,7 @@ import {
 	RouterProvider,
 	useLocation,
 } from 'react-router-dom';
+import SupportTicketPage from '@/pages/logged-in/supports';
 const UsageReport = lazy(() => import('@/pages/logged-in/report'));
 const PrintPage = lazy(() => import('@/pages/student/components/print'));
 const Login = lazy(() => import('@/pages/global/login'));
@@ -202,8 +204,15 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-
 				{
+					path: 'lich-su-giao-dich',
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							<TransactionHistory />
+						</Suspense>
+					),
+				},
+        {
 					path: 'lich-su-in',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -216,6 +225,14 @@ const router = createBrowserRouter(
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
 							<UsageReport />
+						</Suspense>
+					),
+				},
+        {
+					path: 'ho-tro',
+					element: (
+						<Suspense fallback={<LoadingSpinner />}>
+							<SupportTicketPage />
 						</Suspense>
 					),
 				},

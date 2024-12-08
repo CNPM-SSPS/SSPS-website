@@ -9,6 +9,8 @@ import {
 	faQuestionCircle,
 	faRightFromBracket,
 	faUser,
+  faTicket,
+  faMoneyBillWave
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { FC } from 'react';
@@ -36,10 +38,20 @@ const mainNavItems: NavItem[] = [
 		path: '/dashboard/lich-su-in',
 		icon: faHistory,
 	},
+  {
+		title: 'Lịch sử giao dịch',
+		path: '/dashboard/lich-su-giao-dich',
+		icon: faMoneyBillWave,
+	},
 	{
 		title: 'Thống kê máy in',
 		path: '/dashboard/thong-ke',
 		icon: faChartBar,
+	},
+  {
+		title: 'Yêu cầu hỗ trợ',
+		path: '/dashboard/ho-tro',
+		icon: faTicket,
 	},
 ];
 

@@ -40,15 +40,15 @@ const LoggedInHeader = () => {
 							/>
 						</button>
 
-						<Link
-							to='/profile'
+						<div
+
 							className='group relative flex items-center gap-2 rounded-full text-sm font-medium text-white shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-white/50'
 						>
 							<FontAwesomeIcon
 								icon={faCircleUser}
 								className='h-8 w-8'
 							/>
-						</Link>
+						</div>
 					</div>
 				</div>
 			</div>
