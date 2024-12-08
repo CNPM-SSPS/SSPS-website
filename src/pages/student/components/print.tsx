@@ -8,8 +8,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 interface Document {
+  type: string;
 	id: string;
 	name: string;
 	uploadDate: string;
@@ -65,14 +67,15 @@ const saveToCache = async (doc: Document, file: File) => {
 };
 
 interface PrintSettings {
-	copies: number;
-	pages: string;
-	quality: string;
+	printCount: number;
+	printType: string;
+	color: boolean;
 	paperSize: string;
 	printer: string;
 }
 
 const PrintPage = () => {
+  const token = localStorage.getItem('accessToken');
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [documents, setDocuments] = useState<Document[]>([]);
 	const [selectedDocument, setSelectedDocument] = useState<Document | null>(
@@ -86,12 +89,25 @@ const PrintPage = () => {
 		null,
 	);
 	const [printSettings, setPrintSettings] = useState<PrintSettings>({
-		copies: 1,
-		pages: 'all',
-		quality: '600dpi',
-		paperSize: 'Letter',
-		printer: 'HP Laser 103 107 108',
+		printCount: 1,
+		printType: 'double-sided',
+		color: false,
+		paperSize: 'A4',
+		printer: '',
 	});
+  const [printers, setPrinters] = useState([]);
+
+  useEffect(() => {
+    const fetchPrinters = async () => {
+      const response = await axios.get('/v1/student/printing/print', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      }});
+      setPrinters(response.data);
+    };
+
+    fetchPrinters();
+  },[]);
 
 	useEffect(() => {
 		loadDocumentsFromCache();
@@ -186,6 +202,7 @@ const PrintPage = () => {
 				(async () => {
 					const newDocuments: Document[] = selectedFiles.map(
 						(file) => ({
+              type: file.type,
 							id: crypto.randomUUID(),
 							name: file.name,
 							uploadDate: new Date().toLocaleDateString('vi-VN'),
@@ -289,6 +306,23 @@ const PrintPage = () => {
 	const handlePrintConfirm = async () => {
 		if (!currentPrintDoc) return;
 
+    await axios.post('/v1/student/printing/print', {
+      printer: printSettings.printer,
+      printCount: printSettings.printCount,
+      printType: printSettings.printType,
+      color: printSettings.color,
+      printingFile: {
+        fileName: currentPrintDoc.name,
+        fileType: currentPrintDoc.type || 'pdf',
+        pageSize: printSettings.paperSize,
+        pageCount: 1
+      }
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
 		await handlePrint(currentPrintDoc);
 		setShowPrintSettings(false);
 		setCurrentPrintDoc(null);
@@ -297,12 +331,12 @@ const PrintPage = () => {
 	return (
 		<div className='container mx-auto px-4 py-8'>
 			<Helmet>
-				<title>In tài liệu | HCMUT</title>
+				<title>In tài liệu | HCMUT </title>
 			</Helmet>
 			<div className='mb-6 flex items-center justify-between'>
 				<h1 className='text-2xl font-bold'>Tải tài liệu để in</h1>
 				<div className='text-lg font-medium text-blue-600'>
-					Số trang dư hiện tại: {pageBalance} trang
+					Số trang dư hiện tại: {pageBalance} trang 
 				</div>
 			</div>
 
@@ -487,7 +521,7 @@ const PrintPage = () => {
 							}
 							className='mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
 						>
-							Đi đến trang tài liệu
+							Đi đến trang thanh toán
 						</button>
 					</div>
 				</div>
@@ -523,18 +557,11 @@ const PrintPage = () => {
 									}
 									className='w-full rounded border p-2'
 								>
-									<option value='HP Laser 103 107 108'>
-										HP Laser 103 107 108
-									</option>
-									<option value='HP Laser 103 107 101'>
-										HP Laser 103 107 101
-									</option>
-									<option value='HP Laser M101-M106'>
-										HP Laser M101-M106
-									</option>
-									<option value='HP Laser P1102'>
-										HP Laser P1102
-									</option>
+									{printers.map((printer, index) => (
+                    <option key={index} value={printer._id}>
+                      {printer.building + '-' + printer.room + ' ' + printer.campus}
+                    </option>
+                  ))}
 								</select>
 							</div>
 
@@ -545,11 +572,11 @@ const PrintPage = () => {
 								<input
 									type='number'
 									min='1'
-									value={printSettings.copies}
+									value={printSettings.printCount}
 									onChange={(e) =>
 										setPrintSettings((prev) => ({
 											...prev,
-											copies:
+											printCount:
 												parseInt(e.target.value) || 1,
 										}))
 									}
@@ -559,39 +586,39 @@ const PrintPage = () => {
 
 							<div>
 								<label className='mb-1 block text-sm font-medium'>
-									Trang
+									Loại In
 								</label>
 								<select
-									value={printSettings.pages}
+									value={printSettings.printType}
 									onChange={(e) =>
 										setPrintSettings((prev) => ({
 											...prev,
-											pages: e.target.value,
+											printType: e.target.value,
 										}))
 									}
 									className='w-full rounded border p-2'
 								>
-									<option value='all'>Tất cả</option>
-									<option value='custom'>Tùy chỉnh</option>
+									<option value='double-sided'>Hai mặt</option>
+									<option value='single-sided'>Một mặt</option>
 								</select>
 							</div>
 
 							<div>
 								<label className='mb-1 block text-sm font-medium'>
-									Chất lượng
+									Màu
 								</label>
 								<select
-									value={printSettings.quality}
+									value={(printSettings.color)? 'true' : 'false'}
 									onChange={(e) =>
 										setPrintSettings((prev) => ({
 											...prev,
-											quality: e.target.value,
+											color: e.target.value === 'true',
 										}))
 									}
 									className='w-full rounded border p-2'
 								>
-									<option value='600dpi'>600 DPI</option>
-									<option value='300dpi'>300 DPI</option>
+                  <option value='false'>Đen trắng</option>
+                  <option value='true'>Màu sắc</option>
 								</select>
 							</div>
 

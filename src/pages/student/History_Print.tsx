@@ -51,9 +51,7 @@ const PrintHistoryPage = () => {
 	};
 
   const filteredData = fetchedData.filter((item) => {
-    const matchesSearchTerm = item.printingFile.some((file) =>
-      file.fileName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const matchesSearchTerm = item.printingFile.fileName.toLowerCase().includes(searchTerm.toLowerCase())
 		const matchesPrinter =
 			!selectedPrinter || item.printer.model === selectedPrinter;
 		const matchesLocation =
@@ -178,14 +176,14 @@ const PrintHistoryPage = () => {
 								</li>
 								<li>
 									<strong>Tên tài liệu:</strong>{' '}
-									{item.printingFile.map((file) => file.fileName).join(', ')}
+									{item.printingFile.fileName}
 								</li>
 								<li>
 									<strong>Số lượng bản in:</strong>{' '}
 									{item.printCount}
 								</li>
 								<li>
-									<strong>Khổ giấy:</strong> {item.printingFile.map((file) => file.pageSize).join(', ')}
+									<strong>Khổ giấy:</strong> {item.printingFile.pageSize}
 								</li>
 								<li>
 									<strong>Màu sắc:</strong> {item.color === true ? 'Màu' : 'Đen trắng'}
