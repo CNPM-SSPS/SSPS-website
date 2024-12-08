@@ -131,6 +131,13 @@ const Home: React.FC = () => {
 				},
 			});
 
+      // set localstorage
+      const currUserData = JSON.parse(localStorage.getItem('userData') || '{}');
+      localStorage.setItem('userData', JSON.stringify({
+        ...currUserData,
+        pageCount: data.pageCount,
+      }));
+      
 			setStudentInfo({
 				...initialStudentInfo,
 				id: data.id,

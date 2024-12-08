@@ -7,16 +7,17 @@ import {
 	faWallet,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 type PaymentStatus = 'pending' | 'completed';
+import axios from 'axios';
 
 interface PaymentHistoryItem {
-	id: string;
 	content: string;
 	quantity: number;
 	amount: number;
 	date: string;
+  completed: boolean;
 	status: PaymentStatus;
 }
 
@@ -35,13 +36,6 @@ interface QRConfig {
 	template: string;
 	pricePerPage: number;
 }
-const MOCK_PAYMENT_INFO: QRConfig = {
-	bankId: 'MB',
-	accountNo: '0902448134',
-	accountName: 'DANG CONG SON',
-	template: 'compact',
-	pricePerPage: 500,
-};
 
 const PaymentPage = () => {
 	const [currentBalance, setCurrentBalance] = useState(() => {
@@ -62,31 +56,28 @@ const PaymentPage = () => {
 		},
 	]);
 
-	const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([
-		{
-			id: '1',
-			content: 'Mua thêm giấy in',
-			quantity: 10,
-			amount: 5000,
-			date: '17/10/2024 11:56 PM',
-			status: 'completed',
-		},
-		{
-			id: '2',
-			content: 'Mua thêm giấy in',
-			quantity: 10,
-			amount: 5000,
-			date: '17/10/2024 11:56 PM',
-			status: 'completed',
-		},
-	]);
+	const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
 
 	const quantityOptions = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
 
-	const [showPaymentModal, setShowPaymentModal] = useState(false);
 	const [selectedPayment, setSelectedPayment] = useState<PurchaseItem | null>(
 		null,
 	);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const paymentHistory = await axios.get('/v1/student/payment', 
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+      }
+      );
+      setPaymentHistory(paymentHistory.data);
+    }
+
+    fetchData();
+  }, []);
 
 	const handleQuantityChange = (itemId: string, quantity: number) => {
 		setPurchaseItems((items) =>
@@ -102,16 +93,15 @@ const PaymentPage = () => {
 		);
 	};
 
-	const handlePayment = (itemId: string) => {
-		const item = purchaseItems.find((i) => i.id === itemId);
-		if (!item) return;
-
-		const paymentWithDescription = {
-			...item,
-		};
-
-		setSelectedPayment(paymentWithDescription);
-		setShowPaymentModal(true);
+	const handlePayment = (amount: number) => {
+    axios.get('/v1/pay/purchase', {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('accessToken')}`,
+      },
+      params: {
+        amount: amount,
+      }
+    }).then((response) => window.open(response.data.url));
 	};
 
 	const handlePaymentComplete = () => {
@@ -141,7 +131,6 @@ const PaymentPage = () => {
 		);
 
 		const newPaymentHistoryItem: PaymentHistoryItem = {
-			id: crypto.randomUUID(),
 			content: selectedPayment.content,
 			quantity: selectedPayment.quantity,
 			amount: selectedPayment.amount,
@@ -150,7 +139,7 @@ const PaymentPage = () => {
 		};
 		setPaymentHistory((prev) => [...prev, newPaymentHistoryItem]);
 
-		setShowPaymentModal(false);
+
 		setSelectedPayment(null);
 	};
 
@@ -246,12 +235,12 @@ const PaymentPage = () => {
 										</select>
 									</td>
 									<td className='px-4 py-2'>
-										{item.amount.toLocaleString()}đ
+										{item.amount?.toLocaleString()}đ
 									</td>
 									<td className='px-4 py-2'>
 										<button
 											onClick={() =>
-												handlePayment(item.id)
+												handlePayment(item.quantity)
 											}
 											className='rounded bg-blue-500 px-4 py-1 text-white hover:bg-blue-600'
 										>
@@ -265,6 +254,7 @@ const PaymentPage = () => {
 				</div>
 			</div>
 
+      {/* LỊCH SỬ  */}
 			<div className='mb-8 rounded-lg bg-white p-4 shadow'>
 				<div className='mb-4 flex items-center gap-2 text-lg font-semibold'>
 					<FontAwesomeIcon
@@ -279,7 +269,7 @@ const PaymentPage = () => {
 							<tr>
 								<th className='px-4 py-2 text-left'>STT</th>
 								<th className='px-4 py-2 text-left'>
-									Nội dung
+									ID
 								</th>
 								<th className='px-4 py-2 text-left'>
 									Số lượng
@@ -300,19 +290,20 @@ const PaymentPage = () => {
 								<tr key={item.id} className='border-t'>
 									<td className='px-4 py-2'>{index + 1}</td>
 									<td className='px-4 py-2'>
-										{item.content}
+										{item.transactionID}
 									</td>
 									<td className='px-4 py-2'>
-										{item.quantity}
+										{item.pageCount}
 									</td>
 									<td className='px-4 py-2'>
-										{item.amount.toLocaleString()}đ
+										{item.money?.toLocaleString()}đ
 									</td>
-									<td className='px-4 py-2'>{item.date}</td>
+									<td className='px-4 py-2'>{new Date(item.createDate).toLocaleString()}</td>
 									<td className='px-4 py-2'>
-										<span className='text-green-600'>
-											Đã thanh toán
-										</span>
+										{(item.completed)? <span className='text-green-600'> Đã thanh toán
+										</span> : <span className='text-red-600'>
+                      Chưa thanh toán
+										</span>}
 									</td>
 								</tr>
 							))}
@@ -320,7 +311,8 @@ const PaymentPage = () => {
 					</table>
 				</div>
 			</div>
-
+      
+      {/* SỐ TRANG */}
 			<div className='rounded-lg bg-white p-4 shadow'>
 				<div className='flex items-center gap-2 text-lg font-semibold'>
 					<FontAwesomeIcon
@@ -331,14 +323,14 @@ const PaymentPage = () => {
 				</div>
 			</div>
 
-			{showPaymentModal && selectedPayment && (
+			{/* {showPaymentModal && selectedPayment && (
 				<PaymentModal
 					payment={selectedPayment}
 					onClose={() => setShowPaymentModal(false)}
 					onComplete={handlePaymentComplete}
 					qrConfig={MOCK_PAYMENT_INFO}
 				/>
-			)}
+			)} */}
 		</div>
 	);
 };

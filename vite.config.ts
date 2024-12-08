@@ -81,9 +81,18 @@ export default defineConfig({
 		host: '0.0.0.0',
 		proxy: {
 			'/v1': {
-				target: 'http://localhost:8080',
+				target: 'https://7d35-2403-e200-19e-4797-714a-1a6a-509b-bb2b.ngrok-free.app',
 				changeOrigin: true,
 				secure: false,
+				configure: (proxy) => {
+					proxy.on('proxyReq', (proxyReq, req, res) => {
+						// Add your custom header here
+						proxyReq.setHeader(
+							'ngrok-skip-browser-warning',
+							'ngrokplease',
+						);
+					});
+				},
 			},
 		},
 	},
