@@ -45,10 +45,10 @@ const MOCK_PAYMENT_INFO: QRConfig = {
 
 const PaymentPage = () => {
 	const [currentBalance, setCurrentBalance] = useState(() => {
-		const studentInfo = localStorage.getItem('studentInfo');
+		const studentInfo = localStorage.getItem('userData');
 		if (studentInfo) {
 			const parsedInfo = JSON.parse(studentInfo) as StudentInfo;
-			return parsedInfo.paper || 0;
+			return parsedInfo.pageCount || 0;
 		}
 		return 0;
 	});
@@ -122,14 +122,14 @@ const PaymentPage = () => {
 		);
 		setCurrentBalance((prev) => prev + pagesAdded);
 
-		const studentInfo = localStorage.getItem('studentInfo');
+		const studentInfo = localStorage.getItem('userData');
 		if (studentInfo) {
 			const parsedInfo = JSON.parse(studentInfo) as StudentInfo;
 			const updatedInfo = {
 				...parsedInfo,
-				paper: parsedInfo.paper + pagesAdded,
+				paper: parsedInfo.pageCount + pagesAdded,
 			};
-			localStorage.setItem('studentInfo', JSON.stringify(updatedInfo));
+			localStorage.setItem('userData', JSON.stringify(updatedInfo));
 		}
 
 		setPurchaseItems((items) =>

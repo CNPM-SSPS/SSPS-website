@@ -65,10 +65,10 @@ const PrintPage = () => {
 	}, []);
 
 	useEffect(() => {
-		const studentInfoStr = localStorage.getItem('studentInfo');
+		const studentInfoStr = localStorage.getItem('userData');
 		if (studentInfoStr) {
 			const studentInfo: StudentInfo = JSON.parse(studentInfoStr);
-			setPageBalance(studentInfo.paper || 0);
+			setPageBalance(studentInfo.pageCount || 0);
 		}
 	}, []);
 
@@ -141,11 +141,11 @@ const PrintPage = () => {
 	};
 
 	const updatePageBalance = (newBalance: number) => {
-		const studentInfoStr = localStorage.getItem('studentInfo');
+		const studentInfoStr = localStorage.getItem('userData');
 		if (studentInfoStr) {
 			const studentInfo: StudentInfo = JSON.parse(studentInfoStr);
-			studentInfo.paper = newBalance;
-			localStorage.setItem('studentInfo', JSON.stringify(studentInfo));
+			studentInfo.pageCount = newBalance;
+			localStorage.setItem('userData', JSON.stringify(studentInfo));
 			setPageBalance(newBalance);
 		}
 	};

@@ -11,7 +11,7 @@ interface StudentInfo {
 	studentID: string;
 	department: string;
 	isEmailVerified: boolean;
-	paper: number[];
+	pageCount: number;
 	role: string;
 	__t: 'Student';
 }
@@ -25,7 +25,7 @@ interface UpdateProfileResponse {
 	__t: 'Student';
 	studentID: string;
 	department: string;
-	paper: number[];
+	pageCount: number;
 	id: string;
 }
 
@@ -46,7 +46,7 @@ interface PasswordChangeResponse {
 		__t: 'Student';
 		studentID: string;
 		department: string;
-		paper: number[];
+		pageCount: number;
 		id: string;
 	};
 }
@@ -118,7 +118,7 @@ const SettingPage: React.FC = () => {
 				isEmailVerified: data.isEmailVerified,
 				studentID: data.studentID,
 				department: data.department,
-				paper: data.paper,
+				pageCount: data.pageCount,
 				id: data.id,
 				__t: data.__t,
 			};
@@ -198,7 +198,7 @@ const SettingPage: React.FC = () => {
 				studentID: data.user.studentID,
 				department: data.user.department,
 				isEmailVerified: data.user.isEmailVerified,
-				paper: data.user.paper,
+				pageCount: data.user.pageCount,
 				id: data.user.id,
 				__t: data.user.__t,
 			};

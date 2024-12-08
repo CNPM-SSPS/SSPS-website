@@ -12,7 +12,7 @@ interface UserData {
 	studentID: string;
 	department: string;
 	isEmailVerified: boolean;
-	paper: number[];
+	pageCount: number;
 	__t: string;
 }
 
@@ -23,7 +23,7 @@ export interface StudentInfo {
 	studentID: string;
 	department: string;
 	isEmailVerified: boolean;
-	paper: number[];
+	pageCount: number;
 	__t: 'Student';
 }
 
@@ -34,7 +34,7 @@ const initialStudentInfo: StudentInfo = {
 	studentID: '',
 	department: '',
 	isEmailVerified: false,
-	paper: [],
+	pageCount: 0,
 	__t: 'Student',
 };
 
@@ -138,6 +138,7 @@ const Home: React.FC = () => {
 				email: data.email,
 				studentID: data.studentID,
 				department: data.department,
+        pageCount: data.pageCount,
 				isEmailVerified: data.isEmailVerified,
 			});
 
@@ -203,7 +204,7 @@ const Home: React.FC = () => {
 									Số trang in còn lại
 								</h3>
 								<p className='text-3xl font-bold text-blue-600'>
-									{studentInfo.paper?.length ?? 0}
+									{studentInfo.pageCount ?? 0}
 								</p>
 							</div>
 

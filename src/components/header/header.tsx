@@ -51,14 +51,14 @@ const navigationItems: NavigationItem[] = [
 		],
 	},
 	{
-		path: '/bkel',
+		path: 'https://lms.hcmut.edu.vn/',
 		label: 'BKEL',
 		icon: IconsHeader.school,
 		isStudent: false,
 		isForce: false,
 	},
 	{
-		path: '/student/in-tai-lieu',
+		path: '/in-tai-lieu',
 		label: 'In tài liệu',
 		icon: IconsHeader.book,
 		isStudent: true,
@@ -289,7 +289,8 @@ const Header: React.FC<{ isStudent: boolean }> = ({ isStudent }) => {
 								</div>
 							</div>
 						</div>
-					) : (
+					) : 
+          (
 						<div className='flex items-center gap-4'>
 							<NavLink
 								to='/dang-nhap'
@@ -316,7 +317,8 @@ const Header: React.FC<{ isStudent: boolean }> = ({ isStudent }) => {
 								<span className='absolute inset-0 -z-10 rounded-md bg-white/0 transition-colors duration-200 group-hover:bg-white/10' />
 							</button>
 						</div>
-					)}
+					)
+          }
 				</div>
 			</div>
 

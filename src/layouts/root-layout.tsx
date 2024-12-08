@@ -13,7 +13,7 @@ const RootLayout = () => {
 		localStorage.getItem('isAuthenticated') === 'true' ||
 		sessionStorage.getItem('isAuthenticated') === 'true';
 	const loginType =
-		localStorage.getItem('userType') || sessionStorage.getItem('userType');
+		localStorage.getItem('userRole') || sessionStorage.getItem('userRole');
 	const navigate = useNavigate();
 	useEffect(() => {
 		if (isAuthenticated) {
@@ -30,7 +30,7 @@ const RootLayout = () => {
 				<link rel='shortcut icon' href={logo} type='image/jpg' />
 			</Helmet>
 
-			{loginType === 'student' ? (
+			{loginType === 'user' ? (
 				<StudentHeader />
 			) : (
 				<Header isStudent={false} />

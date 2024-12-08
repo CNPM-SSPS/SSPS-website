@@ -15,6 +15,7 @@ interface LoginResponse {
 		isEmailVerified: boolean;
 		studentID?: string;
 		department?: string;
+    pageCount?: number;
 		id: string;
 		__t?: string;
 	};
@@ -111,6 +112,7 @@ const Login: React.FC = () => {
 					studentID: data.user.studentID,
 					department: data.user.department,
 					isEmailVerified: data.user.isEmailVerified,
+          pageCount: data.user.pageCount, 
 					__t: data.user.__t,
 				}),
 			);
