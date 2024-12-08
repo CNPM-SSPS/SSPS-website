@@ -1,9 +1,10 @@
 import Register from '@/pages/global/register';
 import CommonError from '@/pages/logged-in/common-error';
 import PrintHistory from '@/pages/logged-in/history';
-import TransactionHistory from '@/pages/logged-in/transactionhistory';
 import Info from '@/pages/logged-in/info';
 import Printer from '@/pages/logged-in/printer';
+import SupportTicketPage from '@/pages/logged-in/supports';
+import TransactionHistory from '@/pages/logged-in/transactionhistory';
 import PaymentPage from '@/pages/student/payment';
 import { lazy, Suspense } from 'react';
 import {
@@ -12,14 +13,14 @@ import {
 	RouterProvider,
 	useLocation,
 } from 'react-router-dom';
-import SupportTicketPage from '@/pages/logged-in/supports';
 const UsageReport = lazy(() => import('@/pages/logged-in/report'));
 const PrintPage = lazy(() => import('@/pages/student/components/print'));
 const Login = lazy(() => import('@/pages/global/login'));
 const Lorem = lazy(() => import('@/pages/global/lorem'));
 const NotFound = lazy(() => import('@/pages/not-found'));
 const Account = lazy(() => import('@/pages/student/Account'));
-const SettingPage = lazy(() => import('@/pages/logged-in/Setting'));
+const SettingPage = lazy(() => import('@/pages/student/Setting'));
+const SettingAdminPage = lazy(() => import('@/pages/logged-in/Settingadmin'));
 const Help = lazy(() => import('@/pages/student/Help'));
 const History_print = lazy(() => import('@/pages/student/History_Print'));
 
@@ -212,7 +213,7 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-        {
+				{
 					path: 'lich-su-in',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
@@ -220,15 +221,15 @@ const router = createBrowserRouter(
 						</Suspense>
 					),
 				},
-        {
+				{
 					path: 'cai-dat',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
-							<SettingPage />
+							<SettingAdminPage />
 						</Suspense>
 					),
 				},
-        {
+				{
 					path: 'ho-tro',
 					element: (
 						<Suspense fallback={<LoadingSpinner />}>
