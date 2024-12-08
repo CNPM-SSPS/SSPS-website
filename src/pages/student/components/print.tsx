@@ -51,6 +51,19 @@ const getFileType = (fileName: string): string => {
 	}
 };
 
+const saveToCache = async (doc: Document, file: File) => {
+	try {
+		const cache = await caches.open(CACHE_NAME);
+
+		await cache.put(`/file-${doc.id}`, new Response(file));
+
+		const metadataResponse = new Response(JSON.stringify(doc));
+		await cache.put(`/metadata-${doc.id}`, metadataResponse);
+	} catch {
+		toast.error('Không thể lưu tài liệu vào bộ nhớ cache');
+	}
+};
+
 const PrintPage = () => {
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [documents, setDocuments] = useState<Document[]>([]);
@@ -100,19 +113,6 @@ const PrintPage = () => {
 			setDocuments(sortedDocs);
 		} catch {
 			toast.error('Không thể tải tài liệu từ bộ nhớ cache');
-		}
-	};
-
-	const saveToCache = async (doc: Document, file: File) => {
-		try {
-			const cache = await caches.open(CACHE_NAME);
-
-			await cache.put(`/file-${doc.id}`, new Response(file));
-
-			const metadataResponse = new Response(JSON.stringify(doc));
-			await cache.put(`/metadata-${doc.id}`, metadataResponse);
-		} catch {
-			toast.error('Không thể lưu tài liệu vào bộ nhớ cache');
 		}
 	};
 
@@ -212,34 +212,8 @@ const PrintPage = () => {
 			const blob = new Blob([arrayBuffer], { type: fileType });
 			const url = URL.createObjectURL(blob);
 
-			if (doc.name.match(/\.(jpg|jpeg|png|gif)$/i)) {
-				const printWindow = window.open('', '_blank');
-				if (!printWindow) {
-					toast.error('Vui lòng cho phép pop-up để in tài liệu');
-					return;
-				}
-				printWindow.document.write(`
-					<html>
-						<head><title>Print ${doc.name}</title></head>
-						<body style="margin: 0; display: flex; justify-content: center; align-items: center;">
-							<img src="${url}" style="max-width: 100%; max-height: 100vh;" />
-						</body>
-					</html>
-				`);
-				printWindow.document.close();
-				printWindow.onload = () => {
-					printWindow.print();
-				};
-			} else {
-				const printWindow = window.open(url, '_blank');
-				if (!printWindow) {
-					toast.error('Vui lòng cho phép pop-up để in tài liệu');
-					return;
-				}
-				printWindow.onload = () => {
-					printWindow.print();
-				};
-			}
+			setSelectedDocument({ ...doc, url });
+			setShowPreview(true);
 		} catch {
 			toast.error('Không thể in tài liệu. Vui lòng thử lại.');
 		}
@@ -475,7 +449,7 @@ const PrintPage = () => {
 						<button
 							onClick={() =>
 								(window.location.href =
-									'http://localhost:5173/in-tai-lieu')
+									'http://localhost:5173/thanh-toan')
 							}
 							className='mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600'
 						>
